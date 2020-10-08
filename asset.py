@@ -2,10 +2,12 @@ import string
 
 
 class PanicException(Exception):
-    def __init__(self, pointer, error_type, lexeme, message='Invalid syntax'):
+    def __init__(self, line, pointer, lexeme, message='Invalid syntax'):
         super(PanicException, self).__init__(message)
+        self.message = message
         self.pointer = pointer
         self.lexeme = lexeme
+        self.line = line
 
 
 LETTER = set(string.ascii_letters)

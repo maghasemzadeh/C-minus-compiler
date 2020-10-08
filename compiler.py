@@ -6,6 +6,7 @@ symbol_table = {}
 input_file = open('input.txt', 'r')
 lines = input_file.readlines()
 total_tokens = []
+lexical_errors = []
 
 for line in lines:
     pointer = 0
@@ -36,12 +37,19 @@ for line in lines:
                 tokens.append((type_of_token, lexeme))
 
         except PanicException as pe:
-            pass
+            lexical_errors.append((pe.line, pe.lexeme, pe.message))
+            print(pe.message)
+            pointer = pe.pointer + 1
 
     total_tokens.append(tokens)
 
 # error_file = open('lexical_errors.txt', 'w')
 # symbol_file = open('symbol_table.txt', 'w')
+
+
+for i, (line, lexeme, message) in enumerate(lexical_errors):
+    error = str(line) + '.\t' + f'({lexeme}, {message})'
+    lexical_errors[i] = error
 
 for i, line in enumerate(total_tokens):
     output_tokens = str(i + 1) + '.\t'
@@ -51,5 +59,9 @@ for i, line in enumerate(total_tokens):
 
 with open('tokens.txt', 'w') as output_file:
     output_file.writelines(total_tokens)
+
+with open('lexical_errors.txt', 'w') as error_file:
+    error_file.writelines(lexical_errors)
+
 
 input_file.close()

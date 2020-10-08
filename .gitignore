@@ -3,3 +3,7 @@ __pycache__/
 venv/
 .ipynb_checkpoints/
 *.pyc
+tokens.txt
+symbol_table.txt
+lexical_errors.txt
+

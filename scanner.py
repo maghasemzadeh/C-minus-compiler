@@ -43,7 +43,7 @@ def star_symbol_dfa(pointer, line):
     cur_char = line[pointer]
     lexeme += cur_char
     if cur_char == '/':
-        return pointer, lexeme, type_of_token
+        raise PanicException(pointer + 1, lexeme, 'Unmatched */')
     elif cur_char in other:
         return pointer - 1, lexeme[:-1], type_of_token
     raise PanicException(pointer + 1, lexeme, 'Invalid input')

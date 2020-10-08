@@ -30,24 +30,37 @@ def write_symbols_to_file(symbol_table):
 def find_token(line, pointer):
     cur_char = line[pointer]
     if cur_char in DIGIT:
+        print('num ', end='')
         pointer, lexeme, token_type = num_dfa(pointer, line)
+        print('done')
     elif cur_char in LETTER:
+        print('keyword ', end='')
         pointer, lexeme, token_type = keyword_identifier_dfa(pointer, line)
         symbol_table[lexeme] = []
+        print('done')
     elif cur_char == '/':
+        print('comment ', end='')
         pointer, lexeme, token_type = comment_dfa(pointer, line)
+        print('done')
     elif cur_char == '=':
+        print('eq_symbol ', end='')
         pointer, lexeme, token_type = eq_symbol_dfa(pointer, line)
+        print('done')
     elif cur_char == '*':
+        print('star_symbol ', end='')
         pointer, lexeme, token_type = star_symbol_dfa(pointer, line)
+        print('done')
     elif cur_char in SYMBOL:
+        print('symbol ', end='')
         pointer, lexeme, token_type = symbol_dfa(pointer, line)
+        print('done')
     elif cur_char in WHITE_SPACE:
+        print('whitespace ', end='')
         pointer, lexeme, token_type = whitespace_dfa(pointer, line)
-        pass
+        print('done')
     else:
         # TODO error
-        pass
+        print('Else ERROR!')
     return pointer, lexeme, token_type
 
 
@@ -69,6 +82,7 @@ if __name__ == "__main__":
                 pointer, lexeme, token_type = find_token(line + '\n', pointer)
                 if token_type != 'whitespace':
                     tokens.append((token_type, lexeme))
+                    print(token_type, lexeme)
             except PanicException as pe:
                 lexical_errors.append((line_number+1, pe.lexeme, pe.message))
                 pointer = pe.pointer

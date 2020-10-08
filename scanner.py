@@ -25,11 +25,11 @@ def num_dfa(pointer, line):
 
 
 def keyword_identifier_dfa(pointer, line):
-    return pointer, '', ''
+    return pointer + 1, '', ''
 
 
 def whitespace_dfa(pointer, line):
-    return pointer, '', ''
+    return pointer + 1, '', ''
 
 def eq_symbol_dfa(pointer, line):
     token_type = 'SYMBOL'
@@ -74,7 +74,7 @@ def comment_dfa(pointer, line):
 def comment_line_dfa(pointer, line, lexeme):
     other_new_line = set(string.printable).difference({'\n'})
     pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
-    while cur_char in other_new_line:
+    while pointer < len(line) - 1 and cur_char in other_new_line:
         pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     return pointer + 1, lexeme[:-1]
 
@@ -82,9 +82,9 @@ def comment_paragraph_dfa(pointer, line, lexeme):
     other_star = set(string.printable).difference({'*'})
     pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     while True:
-        while cur_char in other_star:
+        while pointer < len(line) - 1 and cur_char in other_star:
             pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
-        while cur_char == '*':
+        while pointer < len(line) - 1 and cur_char == '*':
             pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
         if cur_char == '/':
             return pointer + 1, lexeme

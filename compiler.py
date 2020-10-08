@@ -70,7 +70,7 @@ if __name__ == "__main__":
                     tokens.append((token_type, lexeme))
             except PanicException as pe:
                 lexical_errors.append((line_number+1, pe.lexeme, pe.message))
-                pointer = pe.pointer + 1
+                pointer = pe.pointer
         total_tokens.append(tokens)
 
 

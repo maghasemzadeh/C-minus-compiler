@@ -44,6 +44,7 @@ def find_token(line, pointer):
         pointer, lexeme, token_type = symbol_dfa(pointer, line)
     elif cur_char in WHITE_SPACE:
         pointer, lexeme, token_type = whitespace_dfa(pointer, line)
+        pass
     else:
         # TODO error
         pass
@@ -65,7 +66,7 @@ if __name__ == "__main__":
         tokens = []
         while pointer < len(line):
             try:
-                pointer, lexeme, token_type = find_token(line, pointer)
+                pointer, lexeme, token_type = find_token(line + '\n', pointer)
                 if token_type != 'whitespace':
                     tokens.append((token_type, lexeme))
             except PanicException as pe:

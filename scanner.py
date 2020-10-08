@@ -1,8 +1,15 @@
 from asset import *
 import string
 
+
+def next_iter(pointer, line, lexeme):
+    pointer += 1
+    cur_char = line[pointer]
+    lexeme += cur_char
+    return pointer + 1, cur_char, lexeme
+
 def num_dfa(pointer, line):
-    type_of_token = 'num'
+    token_type = 'NUM'
     lexeme = line[pointer]
     other = WHITE_SPACE.union(SYMBOL).union('/')
     while True:
@@ -11,51 +18,73 @@ def num_dfa(pointer, line):
         if cur_char in DIGIT:
             lexeme += cur_char
         elif cur_char in other:
-            return pointer, lexeme, type_of_token
+            return pointer, lexeme, token_type
         else:
             lexeme += cur_char
             raise PanicException(pointer + 1, lexeme, 'Invalid input')
 
 
 def keyword_identifier_dfa(pointer, line):
-    pass
+    return pointer, '', ''
 
+
+def whitespace_dfa(pointer, line):
+    return pointer, '', ''
 
 def eq_symbol_dfa(pointer, line):
-    type_of_token = 'SYMBOL'
-    other = set(string.printable).difference({'='})
+    token_type = 'SYMBOL'
+    other = VALID_CHARS.difference({'='})
     lexeme = line[pointer]
-    pointer += 1
-    cur_char = line[pointer]
-    lexeme += cur_char
+    pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     if cur_char == '=':
-        return pointer, lexeme, type_of_token
+        return pointer + 1, lexeme, token_type
     elif cur_char in other:
-        return pointer - 1, lexeme[:-1], type_of_token
+        return pointer, lexeme[:-1], token_type
     raise PanicException(pointer + 1, lexeme, 'Invalid input')
 
 
 def star_symbol_dfa(pointer, line):
-    type_of_token = 'SYMBOL'
-    other = set(string.printable).difference({'/'})
+    token_type = 'SYMBOL'
+    other = VALID_CHARS.difference({'/'})
     lexeme = line[pointer]
-    pointer += 1
-    cur_char = line[pointer]
-    lexeme += cur_char
+    pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     if cur_char == '/':
         raise PanicException(pointer + 1, lexeme, 'Unmatched */')
     elif cur_char in other:
-        return pointer - 1, lexeme[:-1], type_of_token
+        return pointer - 1, lexeme[:-1], token_type
     raise PanicException(pointer + 1, lexeme, 'Invalid input')
 
 
 def symbol_dfa(pointer, line):
-    pass
-
+    return pointer + 1, line[pointer], 'SYMBOL'
 
 def comment_dfa(pointer, line):
-    pass
+    token_type = 'COMMENT'
+    # other_star_slash = set(string.printable).difference({'*', '/'})
+    lexeme = line[pointer]
+    pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
+    if cur_char == '/':
+        return *comment_line_dfa(pointer, line, lexeme), token_type
+    elif cur_char == '*':
+        return *comment_paragraph_dfa(pointer, line, lexeme), token_type
+    raise PanicException(pointer + 1, lexeme, 'Invalid input') # ino nagoftan!
 
 
-def whitespace_dfa(pointer, line):
-    pass
+
+def comment_line_dfa(pointer, line, lexeme):
+    other_new_line = set(string.printable).difference({'\n'})
+    pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
+    while cur_char in other_new_line:
+        pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
+    return pointer + 1, lexeme[:-1]
+
+def comment_paragraph_dfa(pointer, line, lexeme):
+    other_star = set(string.printable).difference({'*'})
+    pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
+    while True:
+        while cur_char in other_star:
+            pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
+        while cur_char == '*':
+            pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
+        if cur_char == '/':
+            return pointer + 1, lexeme

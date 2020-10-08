@@ -1,3 +1,5 @@
+from asset import PanicException
+
 def num_dfa(pointer, line):
     pass
 

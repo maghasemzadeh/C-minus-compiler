@@ -42,12 +42,11 @@ for line in lines:
 
 # error_file = open('lexical_errors.txt', 'w')
 # symbol_file = open('symbol_table.txt', 'w')
-# output_file = open('tokens.txt', 'w')
 
 for i, line in enumerate(total_tokens):
     output_tokens = str(i + 1) + '.\t'
     for token in line:
-        output_tokens += str(token)
+        output_tokens += str(token) + ' '
     total_tokens[i] = output_tokens
 
 with open('tokens.txt', 'w') as output_file:

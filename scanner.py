@@ -72,13 +72,15 @@ def star_symbol_dfa(pointer, line):
 def symbol_dfa(pointer, line):
     return pointer + 1, line[pointer], 'SYMBOL'
 
-def comment_dfa(pointer, line):
+
+def comment_dfa(pointer, line, comment_activated):
     token_type = 'COMMENT'
-    # other_star_slash = set(string.printable).difference({'*', '/'})
+    if comment_activated:
+        return *comment_paragraph_dfa(pointer, line, ''), token_type
     lexeme = line[pointer]
     pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     if cur_char == '/':
-        return *comment_line_dfa(pointer, line, lexeme), token_type
+        return *comment_line_dfa(pointer, line, lexeme), False, token_type 
     elif cur_char == '*':
         return *comment_paragraph_dfa(pointer, line, lexeme), token_type
     raise PanicException(pointer + 1, lexeme, 'Invalid input') # ino nagoftan!
@@ -106,6 +108,7 @@ def comment_paragraph_dfa(pointer, line, lexeme):
         while pointer < len(line) - 1 and cur_char == '*':
             pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
         if cur_char == '/':
-            return pointer + 1, lexeme
+            return pointer + 1, lexeme, False
+        return pointer + 1, lexeme, True
 
 

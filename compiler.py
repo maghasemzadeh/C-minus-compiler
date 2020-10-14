@@ -27,7 +27,7 @@ def write_errors_to_file(lexical_errors):
 def write_symbols_to_file(symbol_table):
     symbols_string = []
     for i, symbol in enumerate(symbol_table):
-        symbol_line = f'{i}.\t{symbol}'
+        symbol_line = f'{i+1}.\t\t{symbol}'
         symbols_string.append(symbol_line + '\n')
     with open('symbol_table.txt', 'w') as symbol_file:
         symbol_file.writelines(symbols_string)

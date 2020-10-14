@@ -5,10 +5,10 @@ from scanner import *
 
 def write_output_to_file(total_tokens):
     for i, line in enumerate(total_tokens):
-        output_tokens = str(i + 1) + '.\t'
+        output_tokens = str(i + 1) + '.\t\t'
         for token in line:
             output_tokens += str(token) + ' '
-        total_tokens[i] = output_tokens + '\n'
+        total_tokens[i] = output_tokens.replace("'", '') + '\n'
     with open('tokens.txt', 'w') as output_file:
         output_file.writelines(total_tokens)
 
@@ -64,8 +64,7 @@ def get_next_token(line, pointer, comment_activated):
         pointer, lexeme, token_type = whitespace_dfa(pointer, line)
         print('done')
     else:
-        # TODO error
-        print('Else ERROR!')
+        raise PanicException(pointer + 1, line[pointer], 'Invalid input')
     return pointer, lexeme, token_type, comment_activated
 
 def save_token(comment_lexeme, lexeme, comment_activated, tokens):

@@ -6,7 +6,7 @@ def next_iter(pointer, line, lexeme):
     pointer += 1
     cur_char = line[pointer]
     lexeme += cur_char
-    return pointer + 1, cur_char, lexeme
+    return pointer, cur_char, lexeme
 
 def num_dfa(pointer, line):
     token_type = 'NUM'
@@ -34,16 +34,13 @@ def keyword_identifier_dfa(pointer, line):
             lexeme += cur_char
         elif cur_char in other:
             if lexeme in KEYWORDS:
-                type_of_token = 'keyword'
+                type_of_token = 'KEYWORD'
             else:
-                type_of_token = 'identifier'
+                type_of_token = 'ID'
             return pointer, lexeme, type_of_token
         else:
             lexeme += cur_char
             raise PanicException(pointer + 1, lexeme, 'Invalid input')
-
-def whitespace_dfa(pointer, line):
-    return pointer + 1, '', ''
 
 def eq_symbol_dfa(pointer, line):
     token_type = 'SYMBOL'
@@ -80,9 +77,12 @@ def comment_dfa(pointer, line, comment_activated):
     lexeme = line[pointer]
     pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     if cur_char == '/':
+        print(cur_char)
         return *comment_line_dfa(pointer, line, lexeme), False, token_type 
     elif cur_char == '*':
+        print(cur_char)
         return *comment_paragraph_dfa(pointer, line, lexeme), token_type
+    print('ohoh')
     raise PanicException(pointer + 1, lexeme, 'Invalid input') # ino nagoftan!
 
 
@@ -104,11 +104,16 @@ def comment_paragraph_dfa(pointer, line, lexeme):
     pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     while True:
         while pointer < len(line) - 1 and cur_char in other_star:
+            print('other than start')
             pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
+            print(f'now {cur_char} and pointer is {pointer} < {len(line)}')
         while pointer < len(line) - 1 and cur_char == '*':
+            print('* printed')
             pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
         if cur_char == '/':
+            print('yess finished')
             return pointer + 1, lexeme, False
+        print('comment not finished yet')
         return pointer + 1, lexeme, True
 
 

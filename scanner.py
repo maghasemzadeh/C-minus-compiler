@@ -60,7 +60,7 @@ def star_symbol_dfa(pointer, line):
     lexeme = line[pointer]
     pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     if cur_char == '/':
-        raise PanicException(pointer + 1, lexeme, 'Unmatched */')
+        raise PanicException(pointer + 1, lexeme, 'Unmatched comment')
     elif cur_char in other:
         return pointer - 1, lexeme[:-1], token_type
     raise PanicException(pointer + 1, lexeme, 'Invalid input')

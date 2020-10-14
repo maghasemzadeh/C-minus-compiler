@@ -1,10 +1,15 @@
+
 from asset import *
 from scanner import *
+import sys
 
 
 
 def write_output_to_file(total_tokens):
     for i, line in enumerate(total_tokens):
+        if not line:
+            total_tokens[i] = ''
+            continue
         output_tokens = str(i + 1) + '.\t\t'
         for token in line:
             output_tokens += str(token) + ' '
@@ -14,7 +19,7 @@ def write_output_to_file(total_tokens):
 
 def write_errors_to_file(lexical_errors):
     for i, (line, lexeme, message) in enumerate(lexical_errors):
-        error = str(line) + '.\t' + f'({lexeme}, {message})'
+        error = str(line) + '.\t\t' + f'({lexeme}, {message})'
         lexical_errors[i] = error + '\n'
     with open('lexical_errors.txt', 'w') as error_file:
         error_file.writelines(lexical_errors)
@@ -27,6 +32,16 @@ def write_symbols_to_file(symbol_table):
     with open('symbol_table.txt', 'w') as symbol_file:
         symbol_file.writelines(symbols_string)
 
+
+def save_token(comment_lexeme, lexeme, comment_activated, tokens):
+    if token_type != 'whitespace' and not comment_activated:
+        if not token_type == "COMMENT":
+            tokens.append((token_type, comment_lexeme + lexeme))
+    elif comment_activated:
+        comment_lexeme += lexeme
+    if not comment_activated:
+        comment_lexeme = ""
+    return comment_lexeme
 
 def get_next_token(line, pointer, comment_activated):
     cur_char = line[pointer]
@@ -67,14 +82,6 @@ def get_next_token(line, pointer, comment_activated):
         raise PanicException(pointer + 1, line[pointer], 'Invalid input')
     return pointer, lexeme, token_type, comment_activated
 
-def save_token(comment_lexeme, lexeme, comment_activated, tokens):
-    if token_type != 'whitespace' and not comment_activated:
-        tokens.append((token_type, comment_lexeme + lexeme))
-        print(token_type, lexeme)
-    elif comment_activated:
-        comment_lexeme += lexeme
-    if not comment_activated:
-        comment_lexeme = ""
 
 if __name__ == "__main__":
     
@@ -88,17 +95,23 @@ if __name__ == "__main__":
 
     comment_activated = False
     comment_lexeme = ""
+    comment_start_line = sys.maxsize
     for line_number, line in enumerate(lines):
         pointer = 0
         tokens = []
         while pointer < len(line):
             try:
                 pointer, lexeme, token_type, comment_activated = get_next_token(line + '\n', pointer, comment_activated)
-                save_token(comment_lexeme, lexeme, comment_activated, tokens)
+                comment_lexeme = save_token(comment_lexeme, lexeme, comment_activated, tokens)
+                if comment_activated:
+                    comment_start_line = min(comment_start_line, line_number)  
             except PanicException as pe:
                 lexical_errors.append((line_number+1, pe.lexeme, pe.message))
                 pointer = pe.pointer
         total_tokens.append(tokens)
+    if comment_activated:
+        lexeme = comment_lexeme[:7] + '...' if len(comment_lexeme) > 7 else comment_lexeme
+        lexical_errors.append((comment_start_line+1, lexeme, 'Unclosed commnet'))
 
 
     write_symbols_to_file(symbol_table)

@@ -21,7 +21,7 @@ def num_dfa(pointer, line):
             return pointer, lexeme, token_type
         else:
             lexeme += cur_char
-            raise PanicException(pointer + 1, lexeme, 'Invalid input')
+            raise PanicException(pointer + 1, lexeme, 'Invalid number')
 
 
 def keyword_identifier_dfa(pointer, line):
@@ -62,7 +62,7 @@ def star_symbol_dfa(pointer, line):
     if cur_char == '/':
         raise PanicException(pointer + 1, lexeme, 'Unmatched comment')
     elif cur_char in other:
-        return pointer - 1, lexeme[:-1], token_type
+        return pointer, lexeme[:-1], token_type
     raise PanicException(pointer + 1, lexeme, 'Invalid input')
 
 

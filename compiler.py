@@ -18,9 +18,12 @@ def write_output_to_file(total_tokens):
         output_file.writelines(total_tokens)
 
 def write_errors_to_file(lexical_errors):
-    for i, (line, lexeme, message) in enumerate(lexical_errors):
-        error = str(line) + '.\t\t' + f'({lexeme}, {message})'
-        lexical_errors[i] = error + '\n'
+    if not lexical_errors:
+        lexical_errors = ['There is no lexical error.']
+    else:
+        for i, (line, lexeme, message) in enumerate(lexical_errors):
+            error = str(line) + '.\t\t' + f'({lexeme}, {message})'
+            lexical_errors[i] = error + '\n'
     with open('lexical_errors.txt', 'w') as error_file:
         error_file.writelines(lexical_errors)
 

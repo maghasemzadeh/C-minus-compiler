@@ -14,7 +14,6 @@ def write_output_to_file(total_tokens):
         output_tokens = output_tokens[:-1]
         total_tokens[i] = output_tokens.replace("'", '') + '\n'
     with open('tokens.txt', 'w') as output_file:
-        print('helloooo')
         output_file.writelines(total_tokens)
 
 
@@ -26,9 +25,11 @@ def write_errors_to_file(lexical_errors):
         for i, item in enumerate(lexical_errors):
             error = str(item[0][0]) + '.\t'
             for (line, lexeme, message) in item:
+                lexeme = lexeme.replace('\n', '')
                 error += f'({lexeme}, {message}) '
             error = error[:-1]
             lexical_errors[i] = error + '\n'
+    print('lexical errors:', lexical_errors)
     with open('lexical_errors.txt', 'w') as error_file:
         error_file.writelines(lexical_errors)
 
@@ -129,7 +130,6 @@ if __name__ == "__main__":
         # todo check here?
         lexical_errors[comment_start_line + 1] = [(comment_start_line + 1, lexeme, 'Unclosed commnet')]
 
-    print("\n\nsymboltable\n", symbol_table)
 
     write_symbols_to_file(symbol_table)
     write_output_to_file(total_tokens)

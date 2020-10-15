@@ -7,4 +7,7 @@ venv_wn/
 tokens.txt
 symbol_table.txt
 lexical_errors.txt
+input.txt
+results.txt
+log.txt
 

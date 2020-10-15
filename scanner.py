@@ -1,5 +1,31 @@
 from asset import *
+from utils import PanicException
 import string
+
+
+def get_next_token(line, pointer, comment_activated, symbol_table):
+    cur_char = line[pointer]
+    if comment_activated:
+        pointer, lexeme, token_type, comment_activated = comment_dfa(pointer, line, comment_activated)
+    elif cur_char in DIGIT:
+        pointer, lexeme, token_type = num_dfa(pointer, line)
+    elif cur_char in LETTER:
+        pointer, lexeme, token_type = keyword_identifier_dfa(pointer, line)
+        symbol_table[lexeme] = []
+    elif cur_char == '/':
+        pointer, lexeme, comment_activated, token_type = comment_dfa(pointer, line, comment_activated)
+    elif cur_char == '=':
+        pointer, lexeme, token_type = eq_symbol_dfa(pointer, line)
+    elif cur_char == '*':
+        pointer, lexeme, token_type = star_symbol_dfa(pointer, line)
+    elif cur_char in SYMBOL:
+        pointer, lexeme, token_type = symbol_dfa(pointer, line)
+    elif cur_char in WHITE_SPACE:
+        pointer, lexeme, token_type = whitespace_dfa(pointer, line)
+    else:
+        raise PanicException(pointer + 1, line[pointer], 'Invalid input')
+    return pointer, lexeme, token_type, comment_activated
+
 
 
 def next_iter(pointer, line, lexeme):

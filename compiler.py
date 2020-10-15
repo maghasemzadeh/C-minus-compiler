@@ -29,7 +29,6 @@ def write_errors_to_file(lexical_errors):
                 error += f'({lexeme}, {message}) '
             error = error[:-1]
             lexical_errors[i] = error + '\n'
-    print('lexical errors:', lexical_errors)
     with open('lexical_errors.txt', 'w') as error_file:
         error_file.writelines(lexical_errors)
 
@@ -57,38 +56,22 @@ def save_token(comment_lexeme, lexeme, comment_activated, tokens):
 def get_next_token(line, pointer, comment_activated):
     cur_char = line[pointer]
     if comment_activated:
-        # print('comment ', end='')
         pointer, lexeme, token_type, comment_activated = comment_dfa(pointer, line, comment_activated)
-        # print('done')
     elif cur_char in DIGIT:
-        # print('num ', end='')
         pointer, lexeme, token_type = num_dfa(pointer, line)
-        # print('done')
     elif cur_char in LETTER:
-        # print('keyword ', end='')
         pointer, lexeme, token_type = keyword_identifier_dfa(pointer, line)
         symbol_table[lexeme] = []
-        # print('done')
     elif cur_char == '/':
-        # print('comment ', end='')
         pointer, lexeme, comment_activated, token_type = comment_dfa(pointer, line, comment_activated)
-        # print('done')
     elif cur_char == '=':
-        # print('eq_symbol ', end='')
         pointer, lexeme, token_type = eq_symbol_dfa(pointer, line)
-        # print('done')
     elif cur_char == '*':
-        # print('star_symbol ', end='')
         pointer, lexeme, token_type = star_symbol_dfa(pointer, line)
-        # print('done')
     elif cur_char in SYMBOL:
-        # print('symbol ', end='')
         pointer, lexeme, token_type = symbol_dfa(pointer, line)
-        # print('done')
     elif cur_char in WHITE_SPACE:
-        # print('whitespace ', end='')
         pointer, lexeme, token_type = whitespace_dfa(pointer, line)
-        # print('done')
     else:
         raise PanicException(pointer + 1, line[pointer], 'Invalid input')
     return pointer, lexeme, token_type, comment_activated

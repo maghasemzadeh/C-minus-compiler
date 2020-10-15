@@ -46,11 +46,9 @@ def num_dfa(pointer, line):
             lexeme += cur_char
         elif cur_char in other:
             return pointer, lexeme, token_type
-        elif cur_char in VALID_CHARS:
+        else:
             lexeme += cur_char
             raise PanicException(pointer + 1, lexeme, 'Invalid number')
-        else:
-            return pointer, lexeme, token_type
 
 
 def keyword_identifier_dfa(pointer, line):

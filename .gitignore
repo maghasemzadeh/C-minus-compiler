@@ -1,6 +1,7 @@
 __pycache__/
 .vscode/
 venv/
+venv_wn/
 .ipynb_checkpoints/
 *.pyc
 tokens.txt

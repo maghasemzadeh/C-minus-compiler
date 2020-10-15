@@ -8,6 +8,7 @@ def next_iter(pointer, line, lexeme):
     lexeme += cur_char
     return pointer, cur_char, lexeme
 
+
 def num_dfa(pointer, line):
     token_type = 'NUM'
     lexeme = line[pointer]
@@ -41,6 +42,7 @@ def keyword_identifier_dfa(pointer, line):
         else:
             lexeme += cur_char
             raise PanicException(pointer + 1, lexeme, 'Invalid input')
+
 
 def eq_symbol_dfa(pointer, line):
     token_type = 'SYMBOL'
@@ -78,12 +80,12 @@ def comment_dfa(pointer, line, comment_activated):
     pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     if cur_char == '/':
         print(cur_char)
-        return *comment_line_dfa(pointer, line, lexeme), False, token_type 
+        return *comment_line_dfa(pointer, line, lexeme), False, token_type
     elif cur_char == '*':
         print(cur_char)
         return *comment_paragraph_dfa(pointer, line, lexeme), token_type
     print('ohoh')
-    raise PanicException(pointer + 1, lexeme, 'Invalid input') # ino nagoftan!
+    raise PanicException(pointer + 1, lexeme, 'Invalid input')  # ino nagoftan!
 
 
 def whitespace_dfa(pointer, line):
@@ -92,12 +94,14 @@ def whitespace_dfa(pointer, line):
     pointer += 1
     return pointer, lexeme, type_of_token
 
+
 def comment_line_dfa(pointer, line, lexeme):
     other_new_line = set(string.printable).difference({'\n'})
     pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     while pointer < len(line) - 1 and cur_char in other_new_line:
         pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     return pointer + 1, lexeme[:-1]
+
 
 def comment_paragraph_dfa(pointer, line, lexeme):
     other_star = set(string.printable).difference({'*'})
@@ -115,5 +119,3 @@ def comment_paragraph_dfa(pointer, line, lexeme):
             return pointer + 1, lexeme, False
         print('comment not finished yet')
         return pointer + 1, lexeme, True
-
-

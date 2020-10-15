@@ -1,8 +1,6 @@
-
 from asset import *
 from scanner import *
 import sys
-
 
 
 def write_output_to_file(total_tokens):
@@ -15,22 +13,28 @@ def write_output_to_file(total_tokens):
             output_tokens += str(token) + ' '
         total_tokens[i] = output_tokens.replace("'", '') + '\n'
     with open('tokens.txt', 'w') as output_file:
+        print('helloooo')
         output_file.writelines(total_tokens)
+
 
 def write_errors_to_file(lexical_errors):
     if not lexical_errors:
         lexical_errors = ['There is no lexical error.']
     else:
-        for i, (line, lexeme, message) in enumerate(lexical_errors):
-            error = str(line) + '.\t\t' + f'({lexeme}, {message})'
+        lexical_errors = [lexical_errors[k] for k in sorted(lexical_errors)]
+        for i, item in enumerate(lexical_errors):
+            error = str(item[0][0]) + '.\t\t'
+            for (line, lexeme, message) in item:
+                error += f'({lexeme}, {message}) '
             lexical_errors[i] = error + '\n'
     with open('lexical_errors.txt', 'w') as error_file:
         error_file.writelines(lexical_errors)
 
+
 def write_symbols_to_file(symbol_table):
     symbols_string = []
     for i, symbol in enumerate(symbol_table):
-        symbol_line = f'{i+1}.\t\t{symbol}'
+        symbol_line = f'{i + 1}.\t\t{symbol}'
         symbols_string.append(symbol_line + '\n')
     with open('symbol_table.txt', 'w') as symbol_file:
         symbol_file.writelines(symbols_string)
@@ -46,51 +50,54 @@ def save_token(comment_lexeme, lexeme, comment_activated, tokens):
         comment_lexeme = ""
     return comment_lexeme
 
+
 def get_next_token(line, pointer, comment_activated):
     cur_char = line[pointer]
     if comment_activated:
-        print('comment ', end='')
+        # print('comment ', end='')
         pointer, lexeme, token_type, comment_activated = comment_dfa(pointer, line, comment_activated)
-        print('done')
+        # print('done')
     elif cur_char in DIGIT:
-        print('num ', end='')
+        # print('num ', end='')
         pointer, lexeme, token_type = num_dfa(pointer, line)
-        print('done')
+        # print('done')
     elif cur_char in LETTER:
-        print('keyword ', end='')
+        # print('keyword ', end='')
         pointer, lexeme, token_type = keyword_identifier_dfa(pointer, line)
         symbol_table[lexeme] = []
-        print('done')
+        # print('done')
     elif cur_char == '/':
-        print('comment ', end='')
+        # print('comment ', end='')
         pointer, lexeme, comment_activated, token_type = comment_dfa(pointer, line, comment_activated)
-        print('done')
+        # print('done')
     elif cur_char == '=':
-        print('eq_symbol ', end='')
+        # print('eq_symbol ', end='')
         pointer, lexeme, token_type = eq_symbol_dfa(pointer, line)
-        print('done')
+        # print('done')
     elif cur_char == '*':
-        print('star_symbol ', end='')
+        # print('star_symbol ', end='')
         pointer, lexeme, token_type = star_symbol_dfa(pointer, line)
-        print('done')
+        # print('done')
     elif cur_char in SYMBOL:
-        print('symbol ', end='')
+        # print('symbol ', end='')
         pointer, lexeme, token_type = symbol_dfa(pointer, line)
-        print('done')
+        # print('done')
     elif cur_char in WHITE_SPACE:
-        print('whitespace ', end='')
+        # print('whitespace ', end='')
         pointer, lexeme, token_type = whitespace_dfa(pointer, line)
-        print('done')
+        # print('done')
     else:
         raise PanicException(pointer + 1, line[pointer], 'Invalid input')
     return pointer, lexeme, token_type, comment_activated
 
 
 if __name__ == "__main__":
-    
+
     symbol_table = {}
+    for sym in KEYWORDS:
+        symbol_table[sym] = []
     total_tokens = []
-    lexical_errors = []
+    lexical_errors = {}
     lines = []
 
     with open('input.txt', 'r') as input_file:
@@ -107,15 +114,20 @@ if __name__ == "__main__":
                 pointer, lexeme, token_type, comment_activated = get_next_token(line + '\n', pointer, comment_activated)
                 comment_lexeme = save_token(comment_lexeme, lexeme, comment_activated, tokens)
                 if comment_activated:
-                    comment_start_line = min(comment_start_line, line_number)  
+                    comment_start_line = min(comment_start_line, line_number)
             except PanicException as pe:
-                lexical_errors.append((line_number+1, pe.lexeme, pe.message))
+                if lexical_errors.__contains__(line_number + 1):
+                    lexical_errors[line_number + 1].append((line_number + 1, pe.lexeme, pe.message))
+                else:
+                    lexical_errors[line_number + 1] = [(line_number + 1, pe.lexeme, pe.message)]
                 pointer = pe.pointer
         total_tokens.append(tokens)
     if comment_activated:
         lexeme = comment_lexeme[:7] + '...' if len(comment_lexeme) > 7 else comment_lexeme
-        lexical_errors.append((comment_start_line+1, lexeme, 'Unclosed commnet'))
+        # todo check here?
+        lexical_errors[comment_start_line + 1] = [(comment_start_line + 1, lexeme, 'Unclosed commnet')]
 
+    print("\n\nsymboltable\n", symbol_table)
 
     write_symbols_to_file(symbol_table)
     write_output_to_file(total_tokens)

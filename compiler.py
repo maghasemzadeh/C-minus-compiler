@@ -111,7 +111,7 @@ if __name__ == "__main__":
     if comment_activated:
         lexeme = comment_lexeme[:7] + '...' if len(comment_lexeme) > 7 else comment_lexeme
         # todo check here?
-        lexical_errors[comment_start_line + 1] = [(comment_start_line + 1, lexeme, 'Unclosed commnet')]
+        lexical_errors[comment_start_line + 1] = [(comment_start_line + 1, lexeme, 'Unclosed comment')]
 
 
     write_symbols_to_file(symbol_table)

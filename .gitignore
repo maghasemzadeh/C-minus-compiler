@@ -8,6 +8,6 @@ tokens.txt
 symbol_table.txt
 lexical_errors.txt
 input.txt
-results.txt
+brief_results.txt
 log.txt
 

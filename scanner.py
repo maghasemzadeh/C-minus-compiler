@@ -81,12 +81,9 @@ def comment_dfa(pointer, line, comment_activated):
     lexeme = line[pointer]
     pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     if cur_char == '/':
-        print(cur_char)
         return *comment_line_dfa(pointer, line, lexeme), False, token_type
     elif cur_char == '*':
-        print(cur_char)
         return *comment_paragraph_dfa(pointer, line, lexeme), token_type
-    print('ohoh')
     raise PanicException(pointer + 1, lexeme, 'Invalid input')  # ino nagoftan!
 
 
@@ -110,14 +107,9 @@ def comment_paragraph_dfa(pointer, line, lexeme):
     pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
     while True:
         while pointer < len(line) - 1 and cur_char in other_star:
-            print('other than start')
             pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
-            print(f'now {cur_char} and pointer is {pointer} < {len(line)}')
         while pointer < len(line) - 1 and cur_char == '*':
-            print('* printed')
             pointer, cur_char, lexeme = next_iter(pointer, line, lexeme)
         if cur_char == '/':
-            print('yess finished')
             return pointer + 1, lexeme, False
-        print('comment not finished yet')
         return pointer + 1, lexeme, True

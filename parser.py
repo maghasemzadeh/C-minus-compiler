@@ -4,6 +4,16 @@ class Parser:
         self.parse_table = parse_table
         self.scanner = scanner
         self.non_terminals = non_terminals
+        self.first_dict = self.get_first_dict()
+        self.follow_dict = self.get_follow_dict()
+        self.grammer_tuple = self.get_grammer_tuple()
+        self.predict_list = self.get_predict_list()
+        self.parse_table = self.get_parse_table(
+                                            self.grammer,
+                                            self.first_dict,
+                                            self.follow_dict,
+                                            self.predict_list)
+        
 
     def parse(self):
         advance_input = True
@@ -15,7 +25,7 @@ class Parser:
                 rules = self.parse_table[stack_top][lookahead]
                 if rules == 'synch':
                     pass  # todo exception, pop stack[-1]
-                elif rules == '┤':
+                elif rules == '':
                     pass # todo exception, skip lookahead
                 else:
                     for r in range(len(rules), -1, -1):
@@ -28,4 +38,57 @@ class Parser:
                 advance_input = True
             else:
                 pass # todo exception, pop stack[-1]
+
+
+    def get_first_dict(self, path='Firsts.csv'):
+        res = {}
+        with open(path, 'r') as first_file:
+            for line in first_file.readlines():
+                words = line.strip().split(' ')
+                res[words[0]] = words[1:]
+        return res
+
+    def get_follow_dict(self, path='Follows.csv'):
+        res = {}
+        with open(path, 'r') as follow_file:
+            for line in follow_file.readlines():
+                words = line.strip().split(' ')
+                res[words[0]] = words[1:]
+        return res
+
+    def get_predict_list(self, path='Predicts.csv'):
+        res = []
+        with open(path, 'r') as predict_file:
+            for line in predict_file.readlines():
+                words = line.strip().split(' ')
+                res.append(words) 
+        return res
+
+    def get_grammer_tuple(self, path='Grammer.csv'):
+        res = []
+        with open(path, 'r') as grammer_file:
+            for line in grammer_file.readlines():
+                words = line.strip().split(' ')
+                res.append((words[0], words[1:])) 
+        return res
+
+    def get_parse_table(self, grammer, first, follow, predict):
+        parse_table = {nt:{} for nt in first.keys()}
+        for (non_terminal, grammers), predicts in zip(grammer, predict):
+            for terminal in predicts:
+                parse_table[non_terminal][terminal] = grammers
+        return parse_table
+
+    def next_state(self, non_terminal, terminal):
+        try:
+            return self.parse_table[non_terminal][terminal]
+        except:
+            return ''
+
+    # TODO: remove! (JUST FOR TESTS) 
+    def print_parse_table(self, parse_table):
+        import pandas as pd
+        df = pd.DataFrame(parse_table).T
+        df.fillna(0, inplace=True)
+        print(df)
 

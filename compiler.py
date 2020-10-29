@@ -1,4 +1,4 @@
-from asset import KEYWORDS
+from assets import KEYWORDS
 from scanner import Scanner
 from utils import *
 import sys

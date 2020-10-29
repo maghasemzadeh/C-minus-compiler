@@ -1,4 +1,4 @@
-Program ┤
+Program
 DeclarationList $ { break ; if while return switch ID + - ( NUM }
 Declaration intvoid $ { break ; if while return switch ID + - ( NUM }
 DeclarationInitial ( ; [ , )

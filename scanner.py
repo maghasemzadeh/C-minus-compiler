@@ -1,4 +1,4 @@
-from asset import *
+from assets import *
 import string
 from asset import KEYWORDS
 from utils import *

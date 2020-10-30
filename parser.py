@@ -24,7 +24,7 @@ class Parser:
                 lookahead = self.scanner.get_next_token()
             stack_top = self.stack[-1]
             if stack_top in self.non_terminals:
-                rules = self.parse_table[stack_top][lookahead]
+                rules = self.next_state(stack_top, lookahead)
                 if rules == 'synch':
                     pass  # todo exception, pop stack[-1]
                 elif rules == '':
@@ -85,7 +85,8 @@ class Parser:
                     parse_table[non_terminal][terminal] = EPSILON
             else:
                 for terminal in follow[non_terminal]:
-                    parse_table[non_terminal][terminal] = SYNCH
+                    if not terminal in parse_table[non_terminal]:
+                        parse_table[non_terminal][terminal] = SYNCH
         return parse_table
 
     def next_state(self, non_terminal, terminal):
@@ -95,9 +96,11 @@ class Parser:
             return ''
 
     # TODO: remove! (JUST FOR TESTS) 
-    def print_parse_table(self, parse_table):
+    def print_and_save_parse_table(self, parse_table):
         import pandas as pd
         df = pd.DataFrame(parse_table).T
-        df.fillna(0, inplace=True)
+        df.fillna('', inplace=True)
+        with open('parse_table.txt', 'w') as parse_table_file:
+            parse_table_file.writelines(df.to_string())
         print(df)
-
+        return df

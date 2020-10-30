@@ -6,6 +6,7 @@ class Parser:
         self.parse_table = parse_table
         self.scanner = scanner
         self.non_terminals = non_terminals
+        self.syntax_errors = []
         self.first_dict = self.get_first_dict()
         self.follow_dict = self.get_follow_dict()
         self.grammar_tuple = self.get_grammar_tuple()
@@ -21,14 +22,18 @@ class Parser:
         advance_input = True
         while True:
             if advance_input:
-                lookahead = self.scanner.get_next_token()
+                lookahead, token_type, line_no = self.scanner.get_next_token()
             stack_top = self.stack[-1]
             if stack_top in self.non_terminals:
                 rules = self.next_state(stack_top, lookahead)
                 if rules == 'synch':
-                    pass  # todo exception, pop stack[-1]
+                    self.syntax_errors.append('#' + line_no + ' : syntax_error, missing ' + self.stack[-1])
+                    self.stack.pop(-1)
+                    # pass  # todo exception, pop stack[-1]
                 elif rules == '':
-                    pass # todo exception, skip lookahead
+                    self.syntax_errors.append('#' + line_no + ' : syntax_error, illegal ' + lookahead)
+                    advance_input = True
+                    # pass # todo exception, skip lookahead
                 else:
                     for r in range(len(rules), -1, -1):
                         self.stack.append(rules[r])
@@ -39,7 +44,9 @@ class Parser:
                 self.stack.pop(-1)
                 advance_input = True
             else:
-                pass # todo exception, pop stack[-1]
+                self.syntax_errors.append('#' + line_no + ' : syntax_error, missing' + self.stack[-1])
+                self.stack.pop(-1)
+                # pass # todo exception, pop stack[-1]
 
 
     def get_first_dict(self, path='Firsts.csv'):
@@ -103,4 +110,16 @@ class Parser:
         with open('parse_table.txt', 'w') as parse_table_file:
             parse_table_file.writelines(df.to_string())
         print(df)
-        return df
+
+
+    def write_syntax_errors(self):
+        res = []
+        if len(self.syntax_errors) == 0:
+            with open('symbol_table.txt', 'w') as file:
+                file.writelines('there is no syntax errors.')
+                return
+        for i in self.syntax_errors:
+            res.append(i + '\n')
+        with open('syntax_errors.txt', 'w') as file:
+            file.writelines(res)
+

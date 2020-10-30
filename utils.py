@@ -39,7 +39,7 @@ def write_symbols_to_file(symbol_table):
 
 
 def save_token(comment_lexeme, lexeme, comment_activated, tokens, token_type):
-    if token_type != 'whitespace' and not comment_activated:
+    if token_type != 'WHITESPACE' and not comment_activated:
         if not token_type == "COMMENT":
             tokens.append((token_type, comment_lexeme + lexeme))
     elif comment_activated:

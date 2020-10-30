@@ -25,26 +25,36 @@ class Parser:
     def parse(self):
         advance_input = True
         while True:
+            invalid_token = True  # whitespace and comment are not valid tokens
             if advance_input:
-                lexeme, token_type, line_no = self.scanner.get_next_token()
-                if token_type in ['KEYWORD', 'SYMBOL']:
-                    lookahead = lexeme
-                else:
-                    lookahead = token_type
-            if not self.stack:
-                break
+                while invalid_token:
+                    lexeme, token_type, line_no = self.scanner.get_next_token()
+                    if token_type in ['KEYWORD', 'SYMBOL'] or not token_type:
+                        lookahead = lexeme
+                        invalid_token = False
+                    elif token_type in ['WHITESPACE', 'COMMENT']:
+                        pass
+                    else:
+                        invalid_token = False
+                        lookahead = token_type
+                # print('lookahead = '+lookahead, end=' ')
+            # if not self.stack:
+            #     break
             stack_top = self.stack[-1]
+            # print('- stack top = '+ stack_top, end='\t')
             if stack_top in self.non_terminals:
                 rules = self.next_state(stack_top, lookahead)
                 if rules == 'synch':
                     self.syntax_errors.append('#' + str(line_no) + ' : syntax_error, missing ' + self.stack[-1])
                     self.stack.pop(-1)
-                    # pass  # todo exception, pop stack[-1]
                 elif rules == '':
                     self.syntax_errors.append('#' + str(line_no) + ' : syntax_error, illegal ' + lookahead)
                     advance_input = True
-                    # pass # todo exception, skip lookahead
+                elif rules == 'ε':
+                    self.stack.pop(-1)
+                    advance_input = False
                 else:
+                    print(rules)
                     tmp = []
                     stack_len = len(self.stack)
                     if self.indexes_stack and stack_len < self.indexes_stack[-1]:
@@ -55,7 +65,7 @@ class Parser:
                         if rule in self.non_terminals or rule == EOF:
                             tmp.append(Node(rule, parent=self.last_node))
                     self.stack.extend(reversed(rules))
-                    print(f'tmp = {tmp}')
+                    # print(f'tmp = {tmp}')
                     advance_input = False
                     if not tmp:
                         continue
@@ -63,14 +73,14 @@ class Parser:
                     self.indexes_stack.extend(range(stack_len, stack_len + len(tmp)))
                     self.node_stack.extend(reversed(tmp))
             elif stack_top == lookahead and stack_top == EOF:
-                return 'successfully parsed!'
+                print('successfully parsed!')
+                return
             elif stack_top == lookahead:
                 self.stack.pop(-1)
                 advance_input = True
             else:
-                self.syntax_errors.append('#' + str(line_no) + ' : syntax_error, missing' + self.stack[-1])
+                self.syntax_errors.append('#' + str(line_no) + ' : syntax_error, missing ' + self.stack[-1])
                 self.stack.pop(-1)
-                # pass # todo exception, pop stack[-1]
 
 
     def parse_tree_to_string(self):
@@ -147,11 +157,11 @@ class Parser:
         print(df)
 
 
-    def write_syntax_errors(self):
+    def write_syntax_errors_to_file(self):
         res = []
         if len(self.syntax_errors) == 0:
-            with open('symbol_table.txt', 'w') as file:
-                file.writelines('there is no syntax errors.')
+            with open('syntax_errors.txt', 'w') as file:
+                file.writelines('There is no syntax error.')
                 return
         for i in self.syntax_errors:
             res.append(i + '\n')

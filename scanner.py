@@ -45,7 +45,10 @@ class Scanner:
             self.comment_lexeme = save_token(self.comment_lexeme, lexeme, self.comment_activated, self.tokens_in_line, token_type)
             if self.comment_activated:
                 self.comment_start_line = min(self.comment_start_line, self.line_number)
-            return lexeme, token_type, self.line_number
+            if token_type in ['WHITESPACE', 'COMMENT']:
+                return self.get_next_token()
+            else:
+                return lexeme, token_type, self.line_number
 
         except PanicException as pe:
             if self.lexical_errors.__contains__(self.line_number + 1):

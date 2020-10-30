@@ -26,10 +26,11 @@ class Parser:
         advance_input = True
         while True:
             if advance_input:
-                lookahead, token_type, line_no = self.scanner.get_next_token()
-                print(lookahead, token_type)
-            if not self.stack:
-                break
+                lexeme, token_type, line_no = self.scanner.get_next_token()
+                if token_type in ['KEYWORD', 'SYMBOL']:
+                    lookahead = lexeme
+                else:
+                    lookahead = token_type
             stack_top = self.stack[-1]
             if stack_top in self.non_terminals:
                 rules = self.next_state(stack_top, lookahead)
@@ -47,9 +48,16 @@ class Parser:
                     if self.indexes_stack and stack_len < self.indexes_stack[-1]:
                         self.last_node = self.node_stack.pop(-1)
                         self.indexes_stack.pop(-1)
+<<<<<<< HEAD
                     self.stack.pop(0) 
                     for rule in rules:
                         if rule in self.non_terminals or rule == EOF:
+=======
+                    self.stack.pop(-1)
+                    for r in range(len(rules), -1, -1):
+                        rule = rules[r]
+                        if rule in self.non_terminals:
+>>>>>>> 2b0f7425fc0edede0384771d60351ede2a972528
                             tmp.append(Node(rule, parent=self.last_node))
                     self.stack.extend(reversed(rules))
                     print(f'tmp = {tmp}')

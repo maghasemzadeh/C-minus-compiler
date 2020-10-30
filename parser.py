@@ -1,22 +1,26 @@
 from assets import *
+from anytree import Node, RenderTree
 
 class Parser:
-    def __init__(self, parse_table, start_symbol, scanner, non_terminals):
+    def __init__(self, parse_table, start_symbol, scanner):
         self.stack = [start_symbol]
         self.parse_table = parse_table
         self.scanner = scanner
-        self.non_terminals = non_terminals
         self.syntax_errors = []
         self.first_dict = self.get_first_dict()
         self.follow_dict = self.get_follow_dict()
-        self.grammar_tuple = self.get_grammar_tuple()
+        self.grammar_tuples = self.get_grammar_tuple()
         self.predict_list = self.get_predict_list()
         self.parse_table = self.get_parse_table(
-                                            self.grammar_tuple,
+                                            self.grammar_tuples,
                                             self.first_dict,
                                             self.follow_dict,
                                             self.predict_list)
-        
+        self.non_terminals = self.first_dict.keys()
+        self.root_node = Node(self.grammar_tuples[0][0])
+        self.last_node = self.root_node
+        self.indexes_stack = []
+        self.node_stack = []
 
     def parse(self):
         advance_input = True
@@ -35,8 +39,20 @@ class Parser:
                     advance_input = True
                     # pass # todo exception, skip lookahead
                 else:
+                    tmp = []
+                    stack_len = len(self.stack)
+                    if self.indexes_stack and stack_len < self.indexes_stack[-1]:
+                        self.last_node = self.node_stack.pop(-1)
+                        self.indexes_stack.pop(-1)
+                    self.stack.pop(-1) 
                     for r in range(len(rules), -1, -1):
-                        self.stack.append(rules[r])
+                        rule = rules[r]
+                        if rule in self.non_terminals:
+                            tmp.append(Node(rule, parent=self.last_node))
+                        self.stack.append(rule)
+                    self.last_node = tmp.pop(0)
+                    self.indexes_stack.extend(range(stack_len, stack_len + len(tmp)))
+                    self.node_stack.extend(reversed(tmp))
                     advance_input = False
             elif stack_top == lookahead and stack_top == '$':
                 return 'successfully parsed!'
@@ -48,6 +64,16 @@ class Parser:
                 self.stack.pop(-1)
                 # pass # todo exception, pop stack[-1]
 
+
+    def parse_tree_to_string(self):
+        res = ''
+        for pre, fill, node in RenderTree(self.root_node):
+            res += f"{pre}{node.name}\n"
+        return res
+
+    def write_parse_tree_to_file(self, parse_tree):
+        with open('parse_table.txt', 'w') as parse_tree_file:
+            parse_tree_file.writelines(parse_tree)
 
     def get_first_dict(self, path='Firsts.csv'):
         res = {}

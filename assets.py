@@ -9,3 +9,4 @@ VALID_CHARS = LETTER.union(DIGIT).union(WHITE_SPACE).union(SYMBOL)
 
 EPSILON = 'ε'
 SYNCH = 'synch'
+EOF = '$'

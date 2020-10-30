@@ -18,7 +18,6 @@ if __name__ == "__main__":
         symbol_table[sym] = []
 
     scanner = Scanner('input.txt', symbol_table)
-    scanner.show_results()
     parser = Parser(scanner)
     parser.parse()
     parser.write_parse_tree_to_file()

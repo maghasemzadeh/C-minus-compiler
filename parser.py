@@ -27,15 +27,18 @@ class Parser:
         while True:
             if advance_input:
                 lookahead, token_type, line_no = self.scanner.get_next_token()
+                print(lookahead, token_type)
+            if not self.stack:
+                break
             stack_top = self.stack[-1]
             if stack_top in self.non_terminals:
                 rules = self.next_state(stack_top, lookahead)
                 if rules == 'synch':
-                    self.syntax_errors.append('#' + line_no + ' : syntax_error, missing ' + self.stack[-1])
+                    self.syntax_errors.append('#' + str(line_no) + ' : syntax_error, missing ' + self.stack[-1])
                     self.stack.pop(-1)
                     # pass  # todo exception, pop stack[-1]
                 elif rules == '':
-                    self.syntax_errors.append('#' + line_no + ' : syntax_error, illegal ' + lookahead)
+                    self.syntax_errors.append('#' + str(line_no) + ' : syntax_error, illegal ' + lookahead)
                     advance_input = True
                     # pass # todo exception, skip lookahead
                 else:
@@ -44,23 +47,25 @@ class Parser:
                     if self.indexes_stack and stack_len < self.indexes_stack[-1]:
                         self.last_node = self.node_stack.pop(-1)
                         self.indexes_stack.pop(-1)
-                    self.stack.pop(-1) 
-                    for r in range(len(rules), -1, -1):
-                        rule = rules[r]
-                        if rule in self.non_terminals:
+                    self.stack.pop(0) 
+                    for rule in rules:
+                        if rule in self.non_terminals or rule == EOF:
                             tmp.append(Node(rule, parent=self.last_node))
-                        self.stack.append(rule)
-                    self.last_node = tmp.pop(0)
+                    self.stack.extend(reversed(rules))
+                    print(f'tmp = {tmp}')
+                    advance_input = False
+                    if not tmp:
+                        continue
+                    self.last_node = tmp.pop(-1)
                     self.indexes_stack.extend(range(stack_len, stack_len + len(tmp)))
                     self.node_stack.extend(reversed(tmp))
-                    advance_input = False
-            elif stack_top == lookahead and stack_top == '$':
+            elif stack_top == lookahead and stack_top == EOF:
                 return 'successfully parsed!'
             elif stack_top == lookahead:
                 self.stack.pop(-1)
                 advance_input = True
             else:
-                self.syntax_errors.append('#' + line_no + ' : syntax_error, missing' + self.stack[-1])
+                self.syntax_errors.append('#' + str(line_no) + ' : syntax_error, missing' + self.stack[-1])
                 self.stack.pop(-1)
                 # pass # todo exception, pop stack[-1]
 
@@ -73,7 +78,7 @@ class Parser:
 
     def write_parse_tree_to_file(self):
         parse_tree = self.parse_tree_to_string()
-        with open('parse_table.txt', 'w') as parse_tree_file:
+        with open('parse_tree.txt', 'w') as parse_tree_file:
             parse_tree_file.writelines(parse_tree)
 
     def get_first_dict(self, path='Firsts.csv'):

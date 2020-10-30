@@ -31,7 +31,7 @@ class Scanner:
                     lexeme = self.comment_lexeme[:7] + '...' if len(self.comment_lexeme) > 7 else self.comment_lexeme
                     # todo check here?
                     self.lexical_errors[self.comment_start_line + 1] = [(self.comment_start_line + 1, lexeme, 'Unclosed comment')]
-                return '$'
+                return '$' , None, None
             self.line = self.lines[self.line_number]
             self.pointer = 0
             self.total_tokens.append(self.tokens_in_line)

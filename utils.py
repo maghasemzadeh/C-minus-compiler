@@ -49,6 +49,7 @@ def save_token(comment_lexeme, lexeme, comment_activated, tokens, token_type):
     return comment_lexeme
 
 
+
 class PanicException(Exception):
     def __init__(self, pointer, lexeme, message='Invalid syntax'):
         super(PanicException, self).__init__(message)

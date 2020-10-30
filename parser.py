@@ -82,8 +82,6 @@ class Parser:
         for non_terminal, firsts in first.items():
             if EPSILON in firsts:
                 for terminal in follow[non_terminal]:
-                    if terminal in parse_table[non_terminal] and parse_table[non_terminal][terminal] != [EPSILON]:
-                        raise Exception(f'This grammar Is NOT LL(1) ! Because parse_table[{non_terminal}][{terminal}] = {parse_table[non_terminal][terminal]}')
                     parse_table[non_terminal][terminal] = EPSILON
             else:
                 for terminal in follow[non_terminal]:

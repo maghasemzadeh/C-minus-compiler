@@ -8,10 +8,10 @@ class Parser:
         self.non_terminals = non_terminals
         self.first_dict = self.get_first_dict()
         self.follow_dict = self.get_follow_dict()
-        self.grammer_tuple = self.get_grammer_tuple()
+        self.grammar_tuple = self.get_grammar_tuple()
         self.predict_list = self.get_predict_list()
         self.parse_table = self.get_parse_table(
-                                            self.grammer,
+                                            self.grammar_tuple,
                                             self.first_dict,
                                             self.follow_dict,
                                             self.predict_list)
@@ -66,31 +66,28 @@ class Parser:
                 res.append(words) 
         return res
 
-    def get_grammer_tuple(self, path='Grammer.csv'):
+    def get_grammar_tuple(self, path='Grammar.csv'):
         res = []
-        with open(path, 'r') as grammer_file:
-            for line in grammer_file.readlines():
+        with open(path, 'r') as grammar_file:
+            for line in grammar_file.readlines():
                 words = line.strip().split(' ')
                 res.append((words[0], words[1:])) 
         return res
 
-    def get_parse_table(self, grammer, first, follow, predict):
+    def get_parse_table(self, grammar, first, follow, predict):
         parse_table = {nt:{} for nt in first.keys()}
-        for (non_terminal, grammers), predicts in zip(grammer, predict):
+        for (non_terminal, grammars), predicts in zip(grammar, predict):
             for terminal in predicts:
-                parse_table[non_terminal][terminal] = grammers
+                parse_table[non_terminal][terminal] = grammars
         for non_terminal, firsts in first.items():
             if EPSILON in firsts:
                 for terminal in follow[non_terminal]:
                     if terminal in parse_table[non_terminal] and parse_table[non_terminal][terminal] != [EPSILON]:
-                        raise Exception(f'This Grammer Is NOT LL(1) ! Because parse_table[{non_terminal}][{terminal}] = {parse_table[non_terminal][terminal]}')
+                        raise Exception(f'This grammar Is NOT LL(1) ! Because parse_table[{non_terminal}][{terminal}] = {parse_table[non_terminal][terminal]}')
                     parse_table[non_terminal][terminal] = EPSILON
             else:
                 for terminal in follow[non_terminal]:
                     parse_table[non_terminal][terminal] = SYNCH
-        return parse_table
-                
-
         return parse_table
 
     def next_state(self, non_terminal, terminal):

@@ -1,6 +1,6 @@
 from assets import *
 import string
-from asset import KEYWORDS
+from assets import KEYWORDS
 from utils import *
 import sys
 

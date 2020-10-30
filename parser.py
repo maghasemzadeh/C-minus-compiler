@@ -31,6 +31,8 @@ class Parser:
                     lookahead = lexeme
                 else:
                     lookahead = token_type
+            if not self.stack:
+                break
             stack_top = self.stack[-1]
             if stack_top in self.non_terminals:
                 rules = self.next_state(stack_top, lookahead)
@@ -48,23 +50,16 @@ class Parser:
                     if self.indexes_stack and stack_len < self.indexes_stack[-1]:
                         self.last_node = self.node_stack.pop(-1)
                         self.indexes_stack.pop(-1)
-<<<<<<< HEAD
-                    self.stack.pop(0) 
+                    self.stack.pop(-1) 
                     for rule in rules:
                         if rule in self.non_terminals or rule == EOF:
-=======
-                    self.stack.pop(-1)
-                    for r in range(len(rules), -1, -1):
-                        rule = rules[r]
-                        if rule in self.non_terminals:
->>>>>>> 2b0f7425fc0edede0384771d60351ede2a972528
                             tmp.append(Node(rule, parent=self.last_node))
                     self.stack.extend(reversed(rules))
                     print(f'tmp = {tmp}')
                     advance_input = False
                     if not tmp:
                         continue
-                    self.last_node = tmp.pop(-1)
+                    self.last_node = tmp.pop(0)
                     self.indexes_stack.extend(range(stack_len, stack_len + len(tmp)))
                     self.node_stack.extend(reversed(tmp))
             elif stack_top == lookahead and stack_top == EOF:

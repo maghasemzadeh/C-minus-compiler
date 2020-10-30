@@ -2,9 +2,7 @@ from assets import *
 from anytree import Node, RenderTree
 
 class Parser:
-    def __init__(self, parse_table, start_symbol, scanner):
-        self.stack = [start_symbol]
-        self.parse_table = parse_table
+    def __init__(self, scanner):
         self.scanner = scanner
         self.syntax_errors = []
         self.first_dict = self.get_first_dict()
@@ -16,8 +14,10 @@ class Parser:
                                             self.first_dict,
                                             self.follow_dict,
                                             self.predict_list)
+        start_symbol = self.grammar_tuples[0][0]
         self.non_terminals = self.first_dict.keys()
-        self.root_node = Node(self.grammar_tuples[0][0])
+        self.stack = [start_symbol]
+        self.root_node = Node(start_symbol)
         self.last_node = self.root_node
         self.indexes_stack = []
         self.node_stack = []
@@ -71,7 +71,8 @@ class Parser:
             res += f"{pre}{node.name}\n"
         return res
 
-    def write_parse_tree_to_file(self, parse_tree):
+    def write_parse_tree_to_file(self):
+        parse_tree = self.parse_tree_to_string()
         with open('parse_table.txt', 'w') as parse_tree_file:
             parse_tree_file.writelines(parse_tree)
 

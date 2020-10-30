@@ -1,5 +1,6 @@
 from assets import KEYWORDS
 from scanner import Scanner
+from parser import *
 from utils import *
 import sys
 
@@ -18,3 +19,6 @@ if __name__ == "__main__":
 
     scanner = Scanner('input.txt', symbol_table)
     scanner.show_results()
+    parser = Parser(scanner)
+    parser.parse()
+    parser.write_parse_tree_to_file()

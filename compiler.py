@@ -21,3 +21,4 @@ if __name__ == "__main__":
     parser = Parser(scanner)
     parser.parse()
     parser.write_parse_tree_to_file()
+    parser.write_syntax_errors_to_file()

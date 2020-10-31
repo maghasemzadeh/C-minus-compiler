@@ -36,6 +36,7 @@ class Scanner:
             self.pointer = 0
             self.total_tokens.append(self.tokens_in_line)
             self.tokens_in_line = []
+            print('\n')
 
         try:
             self.pointer, lexeme, token_type, self.comment_activated = self.get_next_token_in_line(self.line + '\n',
@@ -45,10 +46,8 @@ class Scanner:
             self.comment_lexeme = save_token(self.comment_lexeme, lexeme, self.comment_activated, self.tokens_in_line, token_type)
             if self.comment_activated:
                 self.comment_start_line = min(self.comment_start_line, self.line_number)
-            if token_type in ['WHITESPACE', 'COMMENT']:
-                return self.get_next_token()
-            else:
-                return lexeme, token_type, self.line_number
+            return lexeme, token_type, self.line_number
+
 
         except PanicException as pe:
             if self.lexical_errors.__contains__(self.line_number + 1):
@@ -169,7 +168,7 @@ class Scanner:
 
     def whitespace_dfa(self, pointer, line):
         lexeme = line[pointer]
-        type_of_token = 'whitespace'
+        type_of_token = 'WHITESPACE'
         pointer += 1
         return pointer, lexeme, type_of_token
 

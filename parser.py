@@ -47,13 +47,16 @@ class Parser:
                 else:
                     tmp = []
                     stack_len = len(self.stack)
-                    if self.indexes_stack and stack_len < self.indexes_stack[-1]:
+                    self.stack.pop(-1) 
+                    if self.indexes_stack and stack_len == self.indexes_stack[-1]:
                         self.last_node = self.node_stack.pop(-1)
                         self.indexes_stack.pop(-1)
-                    self.stack.pop(-1) 
                     for rule in rules:
                         if rule in self.non_terminals or rule == EOF:
                             tmp.append(Node(rule, parent=self.last_node))
+                        else:
+                            Node(f"({token_type}, {lexeme})", parent=self.last_node)
+
                     self.stack.extend(reversed(rules))
                     print(f'tmp = {tmp}')
                     advance_input = False

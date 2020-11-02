@@ -66,7 +66,6 @@ class Parser:
                 advance_input = True
             else:
                 self._add_error(line_no, 'missing', self.stack.pop())
-                self.syntax_errors.append('#' + str(line_no) + ' : syntax_error, missing ' + self.stack.pop())
 
 
     def _parse_non_terminal(self, stack_top, lookahead, lexeme, token_type, line_no, advance_input):
@@ -77,24 +76,30 @@ class Parser:
             self._add_error(line_no, 'illegal', lookahead)
             advance_input = True
         elif rules == EPSILON:
+            self.tree.add_node('epsilon')
             self.stack.pop()
             advance_input = False
         else:
-            print(rules)
-            stack_len = len(self.stack)
-            self.tree.pre_do(stack_len)
-            self.stack.pop() 
-            non_terminal_rules = []
-            for rule in rules:
-                is_non_terminal = rule in self.non_terminals or rule == EOF
-                node = self.tree.add_node(rule, not is_non_terminal, token_type=token_type, lexeme=lexeme)
-                if is_non_terminal:
-                    non_terminal_rules.append(node)
-            self.stack.extend(reversed(rules))
-            advance_input = False
-            if not non_terminal_rules:
-                return advance_input
-            self.tree.past_do(non_terminal_rules, stack_len)
+            advance_input = self._parse_valid_non_terminal(rules, lexeme, token_type, advance_input)
+        return advance_input
+
+    
+    def _parse_valid_non_terminal(self, rules, lexeme, token_type, advance_input):
+        print(rules)
+        stack_len = len(self.stack)
+        self.tree.pre_do(stack_len)
+        self.stack.pop() 
+        non_terminal_rules = []
+        for rule in rules:
+            is_non_terminal = rule in self.non_terminals or rule == EOF
+            node = self.tree.add_node(rule, not is_non_terminal, token_type=token_type, lexeme=lexeme)
+            if is_non_terminal:
+                non_terminal_rules.append(node)
+        self.stack.extend(reversed(rules))
+        advance_input = False
+        if not non_terminal_rules:
+            return advance_input
+        self.tree.past_do(non_terminal_rules, stack_len)
         return advance_input
 
 

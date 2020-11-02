@@ -6,7 +6,7 @@ import sys
 
 """"
 Arghavan Rezvani - 96101657
-Mohammad Amin Ghasemzade - 97110296
+Mohammad Amin Ghasemzadeh - 97110296
 """
 
 

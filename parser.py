@@ -33,7 +33,7 @@ class Tree:
     
     def __str__(self):
         tree_string = ''
-        for pre, _, node in RenderTree(self.root_node):
+        for pre, _, node in RenderTree(self.root_node.children[0]):
             tree_string += f"{pre}{node.name}\n"
         return tree_string
 

@@ -175,12 +175,11 @@ class Parser:
             return ''
 
     # TODO: remove! (JUST FOR TESTS) 
-    def print_and_save_parse_table(self, parse_table):
+    def print_and_save_parse_table(self, path='parse_table.txt'):
         import pandas as pd
-        df = pd.DataFrame(parse_table).T
+        df = pd.DataFrame(self.parse_table).T
         df.fillna('', inplace=True)
-        with open('parse_table.txt', 'w') as parse_table_file:
-            parse_table_file.writelines(df.to_string())
+        df.to_csv(path)
         print(df)
 
 

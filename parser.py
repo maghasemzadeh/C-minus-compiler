@@ -79,7 +79,7 @@ class Parser:
         elif rules == '':
             self._add_error(line_no, 'illegal', lookahead)
             self._advance_input = True
-        elif rules == EPSILON:
+        elif rules == [EPSILON]:
             father = self.tree.add_node(len(self.stack), stack_top)
             self.tree.add_node(len(self.stack), 'epsilon', father=father)
             self._advance_input = False
@@ -158,14 +158,10 @@ class Parser:
         for (non_terminal, grammars), predicts in zip(grammar, predict):
             for terminal in predicts:
                 parse_table[non_terminal][terminal] = grammars
-        for non_terminal, firsts in first.items():
-            if EPSILON in firsts:
-                for terminal in follow[non_terminal]:
-                    parse_table[non_terminal][terminal] = EPSILON
-            else:
-                for terminal in follow[non_terminal]:
-                    if not terminal in parse_table[non_terminal]:
-                        parse_table[non_terminal][terminal] = SYNCH
+        for non_terminal, follows in follow.items():
+            for terminal in follows:
+                if terminal in parse_table[non_terminal]: continue
+                parse_table[non_terminal][terminal] = SYNCH
         return parse_table
 
     def next_term(self, non_terminal, terminal):

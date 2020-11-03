@@ -36,7 +36,7 @@ class Scanner:
             self.pointer = 0
             self.total_tokens.append(self.tokens_in_line)
             self.tokens_in_line = []
-            print('\n')
+            # print('\n')
 
         try:
             self.pointer, lexeme, token_type, self.comment_activated = self.get_next_token_in_line(self.line + '\n',

@@ -7,25 +7,24 @@ class Tree:
         self.root_node = Node(root)
         self.last_node = self.root_node
         self.indexes_stack = []
-        self.node_stack = []
+        self.fathers = []
         
 
-    def add_node(self, node_name, is_terminal=False, **params):
-        if is_terminal:
-            node = Node(f"({params['token_type']}, {params['lexeme']})", parent=self.last_node)
-        else:
-            node = Node(node_name, parent=self.last_node)
+    def add_node(self, stack_len, node_name, is_terminal=False, **params):
+        self.pop(stack_len)
+        node = Node(f"({params['token_type']}, {params['lexeme']})", parent=self.last_node) \
+                                    if is_terminal else Node(node_name, parent=self.last_node)
         return node
 
-    def pre_do(self, stack_len):
-        if self.indexes_stack and stack_len == self.indexes_stack[-1]:
-            self.last_node = self.node_stack.pop()
-            self.indexes_stack.pop()
+    def pop(self, stack_len):
+        if not self.indexes_stack or stack_len != self.indexes_stack[-1]: return
+        self.last_node = self.fathers.pop()
+        self.indexes_stack.pop()
 
-    def past_do(self, non_terminals, stack_len):
-        self.last_node = non_terminals.pop(0)
-        self.indexes_stack.extend(range(stack_len, stack_len + len(non_terminals)))
-        self.node_stack.extend(reversed(non_terminals))
+    def push(self, len_terms, stack_len, grandpa):
+        if len_terms <= 0: return
+        self.indexes_stack.extend(range(stack_len, stack_len + len_terms))
+        self.fathers.extend(len_terms * [grandpa])
 
     
     def __str__(self):
@@ -57,55 +56,50 @@ class Parser:
                 lookahead, lexeme, token_type, line_no = self._get_valid_token()
             stack_top = self.stack[-1]
             if stack_top in self.non_terminals:
-                advance_input = self._parse_non_terminal(stack_top, lookahead, lexeme, token_type, line_no, advance_input)
+                advance_input = self._parse_non_terminal(stack_top, lookahead, line_no, advance_input)
             elif stack_top == lookahead:
                 if stack_top == EOF:
                     print('successfully parsed!')
                     return
                 self.stack.pop()
+                self.tree.add_node(len(self.stack), '', True, token_type=token_type, lexeme=lexeme)
                 advance_input = True
             else:
                 self._add_error(line_no, 'missing', self.stack.pop())
 
 
-    def _parse_non_terminal(self, stack_top, lookahead, lexeme, token_type, line_no, advance_input):
+    def _parse_non_terminal(self, stack_top, lookahead, line_no, advance_input):
         rules = self.next_term(stack_top, lookahead)
         if rules == 'synch':
             self._add_error(line_no, 'missing', self.stack.pop())
         elif rules == '':
             self._add_error(line_no, 'illegal', lookahead)
             advance_input = True
-        elif rules == EPSILON:
-            self.tree.add_node('epsilon')
             self.stack.pop()
+        elif rules == EPSILON:
+            self.stack.pop()
+            self.tree.add_node(len(self.stack), 'epsilon')
             advance_input = False
         else:
-            advance_input = self._parse_valid_non_terminal(rules, lexeme, token_type, advance_input)
+            self._parse_valid_non_terminal(rules)
+            advance_input = False
         return advance_input
 
     
-    def _parse_valid_non_terminal(self, rules, lexeme, token_type, advance_input):
-        print(rules)
+    def _parse_valid_non_terminal(self, rules):
+        father = self.stack.pop() 
         stack_len = len(self.stack)
-        self.tree.pre_do(stack_len)
-        self.stack.pop() 
-        non_terminal_rules = []
-        for rule in rules:
-            is_non_terminal = rule in self.non_terminals or rule == EOF
-            node = self.tree.add_node(rule, not is_non_terminal, token_type=token_type, lexeme=lexeme)
-            if is_non_terminal:
-                non_terminal_rules.append(node)
+        father_node = self.tree.add_node(stack_len, father, self.is_terminal(father))
         self.stack.extend(reversed(rules))
-        advance_input = False
-        if not non_terminal_rules:
-            return advance_input
-        self.tree.past_do(non_terminal_rules, stack_len)
-        return advance_input
+        self.tree.push(len(rules), stack_len, father_node)
 
 
     def _add_error(self, line_no, error_type, argument):
         msg = f'#{str(line_no)} : syntax_error, {error_type} {argument}'
         self.syntax_errors.append(msg)
+
+    def is_terminal(self, term):
+        return not term in self.non_terminals and not term == EOF
 
     def _get_valid_token(self):
         invalid_token = True  # whitespace and comment are not valid tokens

@@ -10,12 +10,12 @@ class Tree:
         self.fathers = []
         
 
-    def add_node(self, stack_len, node_name, is_terminal=False, father=None, **params):
+    def add_node(self, stack_len, node_name, father=None, token_type=None):
         if not father:
             self.pop(stack_len)
             father = self.last_node
-        if is_terminal:
-            node = Node(f"({params['token_type']}, {params['lexeme']})", parent=father)
+        if token_type:
+            node = Node(f"({token_type}, {node_name})", parent=father)
         else: 
             node = Node(node_name, parent=father)
         return node
@@ -63,9 +63,10 @@ class Parser:
                 self._fetch_rules(stack_top, lookahead, line_no)
             elif stack_top == lookahead:
                 if stack_top == EOF:
+                    self.tree.add_node(len(self.stack), EOF)
                     print('successfully parsed!')
                     return
-                self.tree.add_node(len(self.stack), '', True, token_type=token_type, lexeme=lexeme)
+                self.tree.add_node(len(self.stack), lexeme, token_type=token_type)
                 self._advance_input = True
             else:
                 self._add_error(line_no, 'missing', stack_top)
@@ -89,7 +90,7 @@ class Parser:
     
     def _push_rules(self, rules, stack_top):
         stack_len = len(self.stack)
-        new_node = self.tree.add_node(stack_len, stack_top, self.is_terminal(stack_top))
+        new_node = self.tree.add_node(stack_len, stack_top)
         self.stack.extend(reversed(rules))
         self.tree.push(len(rules), stack_len, new_node)
 

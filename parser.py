@@ -54,44 +54,40 @@ class Parser:
         while True:
             if advance_input:
                 lookahead, lexeme, token_type, line_no = self._get_valid_token()
-            stack_top = self.stack[-1]
+            stack_top = self.stack.pop()
             if stack_top in self.non_terminals:
                 advance_input = self._parse_non_terminal(stack_top, lookahead, line_no, advance_input)
             elif stack_top == lookahead:
                 if stack_top == EOF:
                     print('successfully parsed!')
                     return
-                self.stack.pop()
                 self.tree.add_node(len(self.stack), '', True, token_type=token_type, lexeme=lexeme)
                 advance_input = True
             else:
-                self._add_error(line_no, 'missing', self.stack.pop())
+                self._add_error(line_no, 'missing', stack_top)
 
 
     def _parse_non_terminal(self, stack_top, lookahead, line_no, advance_input):
         rules = self.next_term(stack_top, lookahead)
         if rules == 'synch':
-            self._add_error(line_no, 'missing', self.stack.pop())
+            self._add_error(line_no, 'missing', stack_top)
         elif rules == '':
             self._add_error(line_no, 'illegal', lookahead)
             advance_input = True
-            self.stack.pop()
         elif rules == EPSILON:
-            self.stack.pop()
             self.tree.add_node(len(self.stack), 'epsilon')
             advance_input = False
         else:
-            self._parse_valid_non_terminal(rules)
+            self._parse_valid_non_terminal(rules, stack_top)
             advance_input = False
         return advance_input
 
     
-    def _parse_valid_non_terminal(self, rules):
-        father = self.stack.pop() 
+    def _parse_valid_non_terminal(self, rules, stack_top):
         stack_len = len(self.stack)
-        father_node = self.tree.add_node(stack_len, father, self.is_terminal(father))
+        new_node = self.tree.add_node(stack_len, stack_top, self.is_terminal(stack_top))
         self.stack.extend(reversed(rules))
-        self.tree.push(len(rules), stack_len, father_node)
+        self.tree.push(len(rules), stack_len, new_node)
 
 
     def _add_error(self, line_no, error_type, argument):

@@ -59,6 +59,7 @@ class Parser:
             if self._advance_input:
                 lookahead, lexeme, token_type, line_no = self._get_valid_token()
             stack_top = self.stack.pop()
+            print(stack_top, lookahead)
             if stack_top in self.non_terminals:
                 self._fetch_rules(stack_top, lookahead, line_no)
             elif stack_top == lookahead:
@@ -76,6 +77,7 @@ class Parser:
         rules = self.next_term(stack_top, lookahead)
         if rules == 'synch':
             self._add_error(line_no, 'missing', stack_top)
+            self._advance_input = False
         elif rules == '':
             self._add_error(line_no, 'illegal', lookahead)
             self._advance_input = True

@@ -58,11 +58,15 @@ class Parser:
         while True:
             if self._advance_input:
                 lookahead, lexeme, token_type, line_no = self._get_valid_token()
-            stack_top = self.stack.pop()
-            print(stack_top, lookahead)
+            # print(self.stack, lookahead)
+            stack_top = self.stack[-1]
+            if lookahead == EOF and len(self.stack) > 1:
+                self._add_error(line_no, 'unexpected', 'EOF')
+                return
             if stack_top in self.non_terminals:
                 self._fetch_rules(stack_top, lookahead, line_no)
             elif stack_top == lookahead:
+                self.stack.pop()
                 if stack_top == EOF:
                     self.tree.add_node(len(self.stack), EOF)
                     print('successfully parsed!')
@@ -70,26 +74,29 @@ class Parser:
                 self.tree.add_node(len(self.stack), lexeme, token_type=token_type)
                 self._advance_input = True
             else:
-                self._add_error(line_no, 'missing', stack_top)
-
+                self._add_error(line_no, 'illegal', lookahead)
 
     def _fetch_rules(self, stack_top, lookahead, line_no):
         rules = self.next_term(stack_top, lookahead)
         if rules == 'synch':
+            self.stack.pop()
             self._add_error(line_no, 'missing', stack_top)
             self._advance_input = False
         elif rules == '':
             self._add_error(line_no, 'illegal', lookahead)
             self._advance_input = True
+            # print(self.syntax_errors)
         elif rules == [EPSILON]:
+            self.stack.pop()
             father = self.tree.add_node(len(self.stack), stack_top)
             self.tree.add_node(len(self.stack), 'epsilon', father=father)
             self._advance_input = False
         else:
+            self.stack.pop()
             self._push_rules(rules, stack_top)
             self._advance_input = False
 
-    
+
     def _push_rules(self, rules, stack_top):
         stack_len = len(self.stack)
         new_node = self.tree.add_node(stack_len, stack_top)
@@ -98,7 +105,7 @@ class Parser:
 
 
     def _add_error(self, line_no, error_type, argument):
-        msg = f'#{str(line_no)} : syntax_error, {error_type} {argument}'
+        msg = f'#{str(line_no+1)} : syntax_error, {error_type} {argument}'
         self.syntax_errors.append(msg)
 
     def is_terminal(self, term):
@@ -116,6 +123,7 @@ class Parser:
             else:
                 invalid_token = False
                 lookahead = token_type
+
         return lookahead, lexeme, token_type, line_no
 
 

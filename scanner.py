@@ -26,12 +26,14 @@ class Scanner:
     def get_next_token(self):
         if self.pointer >= len(self.line):
             self.line_number += 1
-            if self.line_number >= len(self.lines):
+            if self.line_number == len(self.lines):
                 if self.comment_activated:
                     lexeme = self.comment_lexeme[:7] + '...' if len(self.comment_lexeme) > 7 else self.comment_lexeme
                     # todo check here?
                     self.lexical_errors[self.comment_start_line + 1] = [(self.comment_start_line + 1, lexeme, 'Unclosed comment')]
                 return '$' , None, self.line_number
+            if self.line_number > len(self.lines):
+                return None, None, None
             self.line = self.lines[self.line_number]
             self.pointer = 0
             self.total_tokens.append(self.tokens_in_line)

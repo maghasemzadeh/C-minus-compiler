@@ -56,13 +56,13 @@ class Parser:
 
     def parse(self):
         while True:
+            # print(self.syntax_errors)
             if self._advance_input:
                 lookahead, lexeme, token_type, line_no = self._get_valid_token()
-            # print(self.stack, lookahead)
+                if lookahead is None and lexeme is None:
+                    return
+            print(line_no, self.stack, lookahead)
             stack_top = self.stack[-1]
-            if lookahead == EOF and len(self.stack) > 1:
-                self._add_error(line_no, 'unexpected', 'EOF')
-                return
             if stack_top in self.non_terminals:
                 self._fetch_rules(stack_top, lookahead, line_no)
             elif stack_top == lookahead:
@@ -73,17 +73,26 @@ class Parser:
                     return
                 self.tree.add_node(len(self.stack), lexeme, token_type=token_type)
                 self._advance_input = True
+            elif lookahead == EOF:
+                print('unexpected EOF')
+
             else:
-                self._add_error(line_no, 'illegal', lookahead)
+                self.stack.pop()
+                self._advance_input = False
+                self._add_error(line_no, 'missing', stack_top)
 
     def _fetch_rules(self, stack_top, lookahead, line_no):
         rules = self.next_term(stack_top, lookahead)
+        print(rules)
         if rules == 'synch':
             self.stack.pop()
             self._add_error(line_no, 'missing', stack_top)
             self._advance_input = False
         elif rules == '':
-            self._add_error(line_no, 'illegal', lookahead)
+            if lookahead == EOF:
+                self._add_error(line_no, 'unexpected', EOF)
+            else:
+                self._add_error(line_no, 'illegal', lookahead)
             self._advance_input = True
             # print(self.syntax_errors)
         elif rules == [EPSILON]:

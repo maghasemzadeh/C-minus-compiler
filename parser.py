@@ -56,12 +56,10 @@ class Parser:
 
     def parse(self):
         while True:
-            # print(self.syntax_errors)
             if self._advance_input:
                 lookahead, lexeme, token_type, line_no = self._get_valid_token()
                 if lookahead is None and lexeme is None:
                     return
-            print(line_no, self.stack, lookahead)
             stack_top = self.stack[-1]
             if stack_top in self.non_terminals:
                 self._fetch_rules(stack_top, lookahead, line_no)
@@ -69,32 +67,30 @@ class Parser:
                 self.stack.pop()
                 if stack_top == EOF:
                     self.tree.add_node(len(self.stack), EOF)
-                    print('successfully parsed!')
                     return
                 self.tree.add_node(len(self.stack), lexeme, token_type=token_type)
                 self._advance_input = True
             elif lookahead == EOF:
-                print('unexpected EOF')
-
+                pass
+                
             else:
                 self.stack.pop()
                 self._advance_input = False
                 self._add_error(line_no, 'missing', stack_top)
+                self.tree.add_node(len(self.stack), lexeme, token_type=token_type)
 
     def _fetch_rules(self, stack_top, lookahead, line_no):
         rules = self.next_term(stack_top, lookahead)
-        print(rules)
         if rules == 'synch':
             self.stack.pop()
             self._add_error(line_no, 'missing', stack_top)
             self._advance_input = False
         elif rules == '':
             if lookahead == EOF:
-                self._add_error(line_no, 'unexpected', EOF)
+                self._add_error(line_no, 'unexpected', 'EOF')
             else:
                 self._add_error(line_no, 'illegal', lookahead)
             self._advance_input = True
-            # print(self.syntax_errors)
         elif rules == [EPSILON]:
             self.stack.pop()
             father = self.tree.add_node(len(self.stack), stack_top)
@@ -190,12 +186,12 @@ class Parser:
             return ''
 
     # TODO: remove! (JUST FOR TESTS) 
-    def print_and_save_parse_table(self, path='parse_table.txt'):
-        import pandas as pd
-        df = pd.DataFrame(self.parse_table).T
-        df.fillna('', inplace=True)
-        df.to_csv(path)
-        print(df)
+    # def print_and_save_parse_table(self, path='parse_table.txt'):
+    #     import pandas as pd
+    #     df = pd.DataFrame(self.parse_table).T
+    #     df.fillna('', inplace=True)
+    #     df.to_csv(path)
+    #     print(df)
 
 
     def write_syntax_errors_to_file(self):

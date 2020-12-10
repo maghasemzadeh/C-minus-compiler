@@ -1,6 +1,7 @@
 from assets import *
 from anytree import Node, RenderTree
-
+from codegen import Codegen 
+import re
 
 class Tree:
     def __init__(self, root):
@@ -54,6 +55,8 @@ class Parser:
         self.stack = [start_symbol]
         self.tree = Tree(start_symbol)
 
+        self.codegen = Codegen()
+
     def parse(self):
         while True:
             if self._advance_input:
@@ -72,7 +75,13 @@ class Parser:
                 self._advance_input = True
             elif lookahead == EOF:
                 pass
-                
+            elif re.match('^#\w+$', stack_top):
+                self.stack.pop()
+                if stack_top == 'pid' or stack_top == 'pnum': 
+                    self.codegen.codegen(stack_top, lookahead)
+                else:
+                    self.codegen.codegen(stack_top)
+                # TODO complete codegen 
             else:
                 self.stack.pop()
                 self._advance_input = False
@@ -101,13 +110,11 @@ class Parser:
             self._push_rules(rules, stack_top)
             self._advance_input = False
 
-
     def _push_rules(self, rules, stack_top):
         stack_len = len(self.stack)
         new_node = self.tree.add_node(stack_len, stack_top)
         self.stack.extend(reversed(rules))
         self.tree.push(len(rules), stack_len, new_node)
-
 
     def _add_error(self, line_no, error_type, argument):
         msg = f'#{str(line_no+1)} : syntax_error, {error_type} {argument}'
@@ -130,7 +137,6 @@ class Parser:
                 lookahead = token_type
 
         return lookahead, lexeme, token_type, line_no
-
 
     def write_parse_tree_to_file(self):
         with open('parse_tree.txt', 'w') as parse_tree_file:

@@ -75,13 +75,14 @@ class Parser:
                 self._advance_input = True
             elif lookahead == EOF:
                 pass
-            elif re.match('^#\w+$', stack_top):
-                self.stack.pop()
-                if stack_top == 'pid' or stack_top == 'pnum': 
-                    self.codegen.codegen(stack_top, lookahead)
-                else:
-                    self.codegen.codegen(stack_top)
-                # TODO complete codegen 
+            # elif re.match('^#\w+$', stack_top):
+            #     pass
+            #     self.stack.pop()
+            #     if stack_top == 'pid' or stack_top == 'pnum':
+            #         self.codegen.codegen(stack_top, lookahead)
+            #     else:
+            #         self.codegen.codegen(stack_top)
+            #     # TODO complete codegen
             else:
                 self.stack.pop()
                 self._advance_input = False

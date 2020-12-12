@@ -48,7 +48,11 @@ class Codegen:
         self.semantic_stack.append(num_addr)
 
     def array_address(self, arg=None):
-        pass
+        index = self.semantic_stack.pop()
+        var_addr = self.semantic_stack.pop()
+        index = index * 4
+        var_addr += index
+        self.semantic_stack.append(var_addr)
 
     def assign(self, arg=None):
         pass

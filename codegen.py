@@ -3,7 +3,9 @@ class Codegen:
         self.semantic_stack = []
         self.program_block = []
         self.cur_temp = 1000
+        self.temp = {}
         self.cur_mem_addr = 500
+        self.memory = {}
         self.action_symbols = {
             'pid': self.pid,
             'pnum': self.pnum,
@@ -11,8 +13,14 @@ class Codegen:
             'assign': self.assign,
             'add': self.add,
             'mult': self.mult,
-            'lt': self.lt,
-            'eq': self.eq
+            'save': self.save,
+            'jp': self.jp,
+            'jpf': self.jpf,
+            'label': self.label,
+            'relop': self.relop,
+            'relop_sign': self.relop_sign,
+            'sign': self.sign,
+            'signed_num': self.signed_num,
         }
 
     def find_addr(self):
@@ -24,18 +32,20 @@ class Codegen:
         t = self.cur_temp
         self.cur_temp += 4
         return t
-        
+
     def codegen(self, action_symbol, arg=None):
         self.action_symbols[action_symbol](arg)
-            
+
     def pid(self, arg):
         # todo symbol table
         addr = self.find_addr()
+        self.memory.update({addr: arg})
         self.semantic_stack.append(addr)
 
     def pnum(self, arg):
-        num = '#' + str(arg)
-        self.semantic_stack.append(num)
+        num_addr = self.get_temp()
+        self.temp.update({num_addr: arg})
+        self.semantic_stack.append(num_addr)
 
     def array_address(self, arg=None):
         pass
@@ -49,8 +59,26 @@ class Codegen:
     def mult(self, arg=None):
         pass
 
-    def lt(self, arg=None):
+    def save(self, arg=None):
         pass
 
-    def eq(self, arg=None):
+    def jpf(self, arg=None):
+        pass
+
+    def jp(self, arg=None):
+        pass
+
+    def label(self, arg=None):
+        pass
+
+    def relop(self, arg=None):
+        pass
+
+    def relop_sign(self, arg=None):
+        pass
+
+    def sign(self, arg=None):
+        pass
+
+    def signed_num(self, arg=None):
         pass

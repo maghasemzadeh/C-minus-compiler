@@ -72,10 +72,18 @@ class Codegen:
         pass
 
     def relop(self, arg=None):
-        pass
+        op_2 = self.semantic_stack.pop()
+        operand = self.semantic_stack.pop()
+        op_1 = self.semantic_stack.pop()
+        t = self.get_temp()
+        self.semantic_stack.append(t)
+        if operand == '==':
+            self.program_block.append(f'(EQ, {op_1}, {op_2}, {t})')
+        elif operand == '<':
+            self.program_block.append(f'(LT, {op_1}, {op_2}, {t})')
 
-    def relop_sign(self, arg=None):
-        pass
+    def relop_sign(self, arg):
+        self.semantic_stack.append(arg)
 
     def sign(self, arg=None):
         pass

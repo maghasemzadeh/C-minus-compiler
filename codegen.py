@@ -64,13 +64,22 @@ class Codegen:
         pass
 
     def save(self, arg=None):
-        pass
+        pb_ind = len(self.program_block) - 1
+        self.semantic_stack.append(pb_ind)
+        self.program_block.append('')
 
     def jpf(self, arg=None):
-        pass
+        pb_ind = self.semantic_stack.pop()
+        if_exp = self.semantic_stack.pop()
+        i = len(self.program_block) - 1
+        self.program_block[pb_ind] = f'(JPF, {if_exp}, {i+1},)'
+        self.semantic_stack.append(i)
+        self.program_block.append('')
 
     def jp(self, arg=None):
-        pass
+        pb_ind = self.semantic_stack.pop()
+        i = len(self.program_block) - 1
+        self.program_block[pb_ind] = f'(JP, {i}, ,)'
 
     def label(self, arg=None):
         pass

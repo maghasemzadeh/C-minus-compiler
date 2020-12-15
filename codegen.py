@@ -34,8 +34,8 @@ class Codegen:
         self.cur_temp += 4
         return t
 
-    def codegen(self, action_symbol, arg=None):
-        self.action_symbols[action_symbol](arg)
+    def generate(self, action_symbol, arg=None):
+        self.action_symbols[action_symbol[1:]](arg)
 
     def pid(self, arg):
         # TODO symbol table
@@ -66,7 +66,7 @@ class Codegen:
         ss_len = len(self.semantic_stack)
         i = len(self.program_block)
         self.program_block[self.semantic_stack[ss_len-1]] = f'(jpf, {self.semantic_stack[ss_len-2]}, {i+1}, );'
-        self.program_block[i] = f'(jp, {self.semantic_stack[ss_len-3]}, , );'
+        self.program_block.append(f'(jp, {self.semantic_stack[ss_len-3]}, , );')
         self.program_block.append('')
         self.semantic_stack.pop()
         self.semantic_stack.pop()
@@ -139,3 +139,8 @@ class Codegen:
             self.semantic_stack.append(-number)
         else:
             self.semantic_stack.append(number)
+
+    def save_program_block(self):
+        with open('output.txt', 'w') as output:
+            for i, block in enumerate(self.program_block):
+                output.write(f'{i}\t{block}\n')

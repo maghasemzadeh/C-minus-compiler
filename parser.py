@@ -70,19 +70,20 @@ class Parser:
                 self.stack.pop()
                 if stack_top == EOF:
                     self.tree.add_node(len(self.stack), EOF)
+                    self.codegen.save_program_block()
                     return
                 self.tree.add_node(len(self.stack), lexeme, token_type=token_type)
                 self._advance_input = True
             elif lookahead == EOF:
                 pass
-            # elif re.match('^#\w+$', stack_top):
-            #     pass
-            #     self.stack.pop()
-                # if stack_top == '#pid' or stack_top == '#pnum' or stack_top == '#sign':
-            #         self.codegen.codegen(stack_top, lookahead)
-            #     else:
-            #         self.codegen.codegen(stack_top)
-            #     # TODO complete codegen
+            elif re.match('^#\w+$', stack_top):
+                self.stack.pop()
+                self.tree.add_node(len(self.stack), stack_top)
+                if stack_top == '#pid' or stack_top == '#pnum' or stack_top == '#sign':
+                    self.codegen.generate(stack_top, lexeme)
+                else:
+                    self.codegen.generate(stack_top)
+                self._advance_input = False
             else:
                 self.stack.pop()
                 self._advance_input = False

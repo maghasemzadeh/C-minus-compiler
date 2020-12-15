@@ -21,6 +21,7 @@ class Codegen:
             'relop_sign': self.relop_sign,
             'sign': self.sign,
             'signed_num': self.signed_num,
+            'while': self.whil
         }
 
     def find_addr(self):
@@ -37,7 +38,7 @@ class Codegen:
         self.action_symbols[action_symbol](arg)
 
     def pid(self, arg):
-        # todo symbol table
+        # TODO symbol table
         addr = self.find_addr()
         self.memory.update({addr: arg})
         self.semantic_stack.append(addr)
@@ -55,13 +56,42 @@ class Codegen:
         self.semantic_stack.append(var_addr)
 
     def assign(self, arg=None):
-        pass
+        op2 = self.semantic_stack.pop()
+        op1 = self.semantic_stack.pop()
+        self.program_block.append(f'(ASSIGN, {op1}, {op2}, )')
+        t = self.get_temp()
+        self.semantic_stack.append(t)
+
+    def whil(self, arg=None):
+        ss_len = len(self.semantic_stack)
+        i = len(self.program_block)
+        self.program_block[self.semantic_stack[ss_len-1]] = f'(jpf, {self.semantic_stack[ss_len-2]}, {i+1}, );'
+        self.program_block[i] = f'(jp, {self.semantic_stack[ss_len-3]}, , );'
+        self.program_block.append('')
+        self.semantic_stack.pop()
+        self.semantic_stack.pop()
+        self.semantic_stack.pop()
+
 
     def add(self, arg=None):
-        pass
+        op1 = self.semantic_stack.pop()
+        operation = self.semantic_stack.pop()
+        op2 = self.semantic_stack.pop()
+        t = self.get_temp()
+        self.semantic_stack.append(t)
+        if operation == '+':
+            self.program_block.append(f'(ADD, {op1}, {op2}, {t})')
+        else:
+            self.program_block.append(f'(SUB, {op1}, {op2}, {t})')
 
     def mult(self, arg=None):
-        pass
+        op1 = self.semantic_stack.pop()
+        op2 = self.semantic_stack.pop()
+        self.semantic_stack.append(op1 * op2)
+        t = self.get_temp()
+        self.semantic_stack.append(t)
+        self.program_block.append(f'(MULT, {op1}, {op2}, {t})')
+        
 
     def save(self, arg=None):
         pb_ind = len(self.program_block) - 1
@@ -82,7 +112,8 @@ class Codegen:
         self.program_block[pb_ind] = f'(JP, {i}, ,)'
 
     def label(self, arg=None):
-        pass
+        pb_ind = len(self.program_block) - 1
+        self.semantic_stack.append(pb_ind)
 
     def relop(self, arg=None):
         op_2 = self.semantic_stack.pop()
@@ -98,8 +129,13 @@ class Codegen:
     def relop_sign(self, arg):
         self.semantic_stack.append(arg)
 
-    def sign(self, arg=None):
-        pass
+    def sign(self, arg):
+        self.semantic_stack.append(arg)
 
     def signed_num(self, arg=None):
-        pass
+        number = self.semantic_stack.pop()
+        sign = self.semantic_stack.pop()
+        if sign == '-':
+            self.semantic_stack.append(-number)
+        else:
+            self.semantic_stack.append(number)

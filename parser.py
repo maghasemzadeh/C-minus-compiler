@@ -78,7 +78,7 @@ class Parser:
             # elif re.match('^#\w+$', stack_top):
             #     pass
             #     self.stack.pop()
-            #     if stack_top == 'pid' or stack_top == 'pnum':
+                # if stack_top == '#pid' or stack_top == '#pnum' or stack_top == '#sign':
             #         self.codegen.codegen(stack_top, lookahead)
             #     else:
             #         self.codegen.codegen(stack_top)

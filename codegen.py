@@ -22,7 +22,9 @@ class Codegen:
             'sign': self.sign,
             'signed_num': self.signed_num,
             'while': self.whil,
-            'pop': self.pop
+            'pop': self.pop,
+            'output': self.output,
+            'save_arr': self.save_arr
         }
         self.arg_actions = ['pid', 'pnum', 'sign', 'relop_sign']
 
@@ -68,9 +70,9 @@ class Codegen:
 
     def whil(self, arg=None):
         i = len(self.program_block)
-        self.program_block[self.semantic_stack[-1]] = f'(jpf, {self.semantic_stack[-2]}, {i+1}, );'
-        self.program_block.append(f'(jp, {self.semantic_stack[-3]}, , );')
-        self.program_block.append('')
+        self.program_block[self.semantic_stack[-1]] = f'(JPF, {self.semantic_stack[-2]}, {i+1}, )'
+        self.program_block.append(f'(JP, {self.semantic_stack[-3]+1}, , )')
+        # self.program_block.append('')
         self.semantic_stack.pop()
         self.semantic_stack.pop()
         self.semantic_stack.pop()
@@ -103,14 +105,14 @@ class Codegen:
     def jpf(self, arg=None):
         pb_ind = self.semantic_stack.pop()
         if_exp = self.semantic_stack.pop()
-        i = len(self.program_block) - 1
+        i = len(self.program_block)
         self.program_block[pb_ind] = f'(JPF, {if_exp}, {i+1},)'
         self.semantic_stack.append(i)
         self.program_block.append('')
 
     def jp(self, arg=None):
         pb_ind = self.semantic_stack.pop()
-        i = len(self.program_block) - 1
+        i = len(self.program_block)
         self.program_block[pb_ind] = f'(JP, {i}, ,)'
 
     def label(self, arg=None):
@@ -150,3 +152,13 @@ class Codegen:
 
     def pop(self, arg=None):
         self.semantic_stack.pop()
+
+
+    def output(self, arg=None):
+        to_print = self.semantic_stack.pop()
+        self.program_block.append(f'(PRINT, {to_print}, , )')
+
+    def save_arr(self, arg=None):
+        # TODO save size of array
+        pass
+

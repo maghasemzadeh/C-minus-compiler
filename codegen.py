@@ -23,6 +23,7 @@ class Codegen:
             'signed_num': self.signed_num,
             'while': self.whil
         }
+        self.arg_actions = ['pid', 'pnum', 'sign', 'relop_sign']
 
     def find_addr(self):
         t = self.cur_mem_addr
@@ -36,6 +37,7 @@ class Codegen:
 
     def generate(self, action_symbol, arg=None):
         self.action_symbols[action_symbol[1:]](arg)
+        print(f'{action_symbol[1:]}({arg})\r\t\t-> {str(self.semantic_stack)[:-1]}')
 
     def pid(self, arg):
         # TODO symbol table
@@ -63,10 +65,9 @@ class Codegen:
         self.semantic_stack.append(t)
 
     def whil(self, arg=None):
-        ss_len = len(self.semantic_stack)
         i = len(self.program_block)
-        self.program_block[self.semantic_stack[ss_len-1]] = f'(jpf, {self.semantic_stack[ss_len-2]}, {i+1}, );'
-        self.program_block.append(f'(jp, {self.semantic_stack[ss_len-3]}, , );')
+        self.program_block[self.semantic_stack[-1]] = f'(jpf, {self.semantic_stack[-2]}, {i+1}, );'
+        self.program_block.append(f'(jp, {self.semantic_stack[-3]}, , );')
         self.program_block.append('')
         self.semantic_stack.pop()
         self.semantic_stack.pop()
@@ -87,14 +88,13 @@ class Codegen:
     def mult(self, arg=None):
         op1 = self.semantic_stack.pop()
         op2 = self.semantic_stack.pop()
-        self.semantic_stack.append(op1 * op2)
         t = self.get_temp()
         self.semantic_stack.append(t)
         self.program_block.append(f'(MULT, {op1}, {op2}, {t})')
         
 
     def save(self, arg=None):
-        pb_ind = len(self.program_block) - 1
+        pb_ind = len(self.program_block)
         self.semantic_stack.append(pb_ind)
         self.program_block.append('')
 

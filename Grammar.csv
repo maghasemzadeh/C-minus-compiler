@@ -32,7 +32,7 @@ Expression-stmt Expression ;
 Expression-stmt break ;
 Expression-stmt ;
 Selection-stmt if ( Expression #save) Statement else #jpf_save Statement #jp
-Iteration-stmt while (#label Expression ) #save Statement #while
+Iteration-stmt while ( #label Expression ) #save Statement #while
 Return-stmt return Return-stmt-prime
 Return-stmt-prime ;
 Return-stmt-prime Expression ;
@@ -53,8 +53,8 @@ Simple-expression-zegond Additive-expression-zegond C
 Simple-expression-prime Additive-expression-prime C
 C Relop Additive-expression #relop
 C ε
-Relop < #relop_sign
-Relop ==  #relop_sign
+Relop #relop_sign < 
+Relop #relop_sign ==  
 Additive-expression Term D
 Additive-expression-prime Term-prime D
 Additive-expression-zegond Term-zegond D

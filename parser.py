@@ -79,7 +79,7 @@ class Parser:
             elif re.match('^#\w+$', stack_top):
                 self.stack.pop()
                 self.tree.add_node(len(self.stack), stack_top)
-                if stack_top == '#pid' or stack_top == '#pnum' or stack_top == '#sign':
+                if stack_top[1:] in self.codegen.arg_actions:
                     self.codegen.generate(stack_top, lexeme)
                 else:
                     self.codegen.generate(stack_top)

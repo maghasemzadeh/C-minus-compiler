@@ -45,8 +45,12 @@ class Codegen:
 
     def pid(self, arg):
         # TODO symbol table
+        for key, val in self.memory.items():
+            if key == arg:
+                self.semantic_stack.append(val)
+                return
         addr = self.find_addr()
-        self.memory.update({addr: arg})
+        self.memory.update({arg: addr})
         self.semantic_stack.append(addr)
 
     def pnum(self, arg):
@@ -58,11 +62,10 @@ class Codegen:
     def array_address(self, arg=None):
         index = self.semantic_stack.pop()
         var_addr = self.semantic_stack.pop()
-        index = index * 4
-        self.program_block.append(f'(MULT, {index}, #4, {index})')
-        var_addr += index
-        self.program_block.append(f'(ADD, {var_addr}, {index}, {var_addr})')
-        self.semantic_stack.append(var_addr)
+        t = self.get_temp()
+        self.program_block.append(f'(MULT, {index}, #4, {t})')
+        self.program_block.append(f'(ADD, {var_addr}, {t}, {t})')
+        self.semantic_stack.append('@'+str(t))
 
     def assign(self, arg=None):
         op2 = self.semantic_stack.pop()

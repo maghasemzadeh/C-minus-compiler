@@ -21,7 +21,8 @@ class Codegen:
             'relop_sign': self.relop_sign,
             'sign': self.sign,
             'signed_num': self.signed_num,
-            'while': self.whil
+            'while': self.whil,
+            'pop': self.pop
         }
         self.arg_actions = ['pid', 'pnum', 'sign', 'relop_sign']
 
@@ -63,6 +64,7 @@ class Codegen:
         self.program_block.append(f'(ASSIGN, {op1}, {op2}, )')
         t = self.get_temp()
         self.semantic_stack.append(t)
+        self.temp[t] = op1 
 
     def whil(self, arg=None):
         i = len(self.program_block)
@@ -144,3 +146,7 @@ class Codegen:
         with open('output.txt', 'w') as output:
             for i, block in enumerate(self.program_block):
                 output.write(f'{i}\t{block}\n')
+
+
+    def pop(self, arg=None):
+        self.semantic_stack.pop()

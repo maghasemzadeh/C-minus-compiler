@@ -15,3 +15,5 @@ PA1_input_output_samples/
 PA3_Resources/
 parse_tree.txt
 syntax_errors.txt
+output.txt
+expected.txt

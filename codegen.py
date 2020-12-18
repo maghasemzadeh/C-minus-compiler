@@ -40,7 +40,8 @@ class Codegen:
 
     def generate(self, action_symbol, arg=None):
         self.action_symbols[action_symbol[1:]](arg)
-        print(f'{action_symbol[1:]}({arg})\r\t\t-> {str(self.semantic_stack)[:-1]}')
+        t = action_symbol[1:]
+        print(f'{t}({arg})\t\t-> {str(self.semantic_stack)[:-1]}')
 
     def pid(self, arg):
         # TODO symbol table
@@ -50,20 +51,23 @@ class Codegen:
 
     def pnum(self, arg):
         num_addr = self.get_temp()
-        self.temp.update({num_addr: arg})
+        self.program_block.append(f'(ASSIGN, #{arg}, {num_addr}, )')
+        # self.temp.update({num_addr: arg})
         self.semantic_stack.append(num_addr)
 
     def array_address(self, arg=None):
         index = self.semantic_stack.pop()
         var_addr = self.semantic_stack.pop()
         index = index * 4
+        self.program_block.append(f'(MULT, {index}, #4, {index})')
         var_addr += index
+        self.program_block.append(f'(ADD, {var_addr}, {index}, {var_addr})')
         self.semantic_stack.append(var_addr)
 
     def assign(self, arg=None):
         op2 = self.semantic_stack.pop()
         op1 = self.semantic_stack.pop()
-        self.program_block.append(f'(ASSIGN, {op1}, {op2}, )')
+        self.program_block.append(f'(ASSIGN, {op2}, {op1}, )')
         t = self.get_temp()
         self.semantic_stack.append(t)
         self.temp[t] = op1 
@@ -139,10 +143,15 @@ class Codegen:
     def signed_num(self, arg=None):
         number = self.semantic_stack.pop()
         sign = self.semantic_stack.pop()
+        #todo check here
         if sign == '-':
-            self.semantic_stack.append(-number)
+            self.pnum(-number)
         else:
-            self.semantic_stack.append(number)
+            self.pnum(number)
+        # if sign == '-':
+        #     self.semantic_stack.append(-number)
+        # else:
+        #     self.semantic_stack.append(number)
 
     def save_program_block(self):
         with open('output.txt', 'w') as output:

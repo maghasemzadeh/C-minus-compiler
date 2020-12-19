@@ -31,7 +31,7 @@ Statement Switch-stmt
 Expression-stmt Expression ; #pop
 Expression-stmt break ;
 Expression-stmt ;
-Selection-stmt if ( Expression #save) Statement else #jpf_save Statement #jp
+Selection-stmt if ( Expression ) #save Statement else #jpf Statement #jp
 Iteration-stmt while ( #label Expression ) #save Statement #while
 Return-stmt return Return-stmt-prime
 Return-stmt-prime ; 

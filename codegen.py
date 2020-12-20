@@ -40,33 +40,42 @@ class Codegen:
 
     def generate(self, action_symbol, arg=None):
         self.action_symbols[action_symbol[1:]](arg)
-        print(f'{action_symbol[1:]}({arg})\r\t\t-> {str(self.semantic_stack)[:-1]}')
+        t = action_symbol[1:]
+        print(f'{t}({arg})\t\t-> {str(self.semantic_stack)[:-1]}')
 
     def pid(self, arg):
         # TODO symbol table
+        for key, val in self.memory.items():
+            if key == arg:
+                self.semantic_stack.append(val)
+                return
         addr = self.find_addr()
-        self.memory.update({addr: arg})
+        self.memory.update({arg: addr})
+        self.program_block.append(f'(ASSIGN, #0, {addr}, )')
         self.semantic_stack.append(addr)
 
     def pnum(self, arg):
         num_addr = self.get_temp()
+        self.program_block.append(f'(ASSIGN, #{arg}, {num_addr}, )')
         self.temp.update({num_addr: arg})
         self.semantic_stack.append(num_addr)
 
     def array_address(self, arg=None):
         index = self.semantic_stack.pop()
         var_addr = self.semantic_stack.pop()
-        index = index * 4
-        var_addr += index
-        self.semantic_stack.append(var_addr)
+        t = self.get_temp()
+        self.program_block.append(f'(MULT, {index}, #4, {t})')
+        t2 = self.get_temp()
+        self.program_block.append(f'(ADD, {var_addr}, {t}, {t2})')
+        self.semantic_stack.append('@'+str(t2))
 
     def assign(self, arg=None):
         op2 = self.semantic_stack.pop()
         op1 = self.semantic_stack.pop()
-        self.program_block.append(f'(ASSIGN, {op1}, {op2}, )')
-        t = self.get_temp()
-        self.semantic_stack.append(t)
-        self.temp[t] = op1 
+        self.program_block.append(f'(ASSIGN, {op2}, {op1}, )')
+        # t = self.get_temp()
+        self.semantic_stack.append(op1)
+        # self.temp[t] = op1
 
     def whil(self, arg=None):
         i = len(self.program_block)
@@ -99,6 +108,7 @@ class Codegen:
 
     def save(self, arg=None):
         pb_ind = len(self.program_block)
+        print('------------------------------------', pb_ind)
         self.semantic_stack.append(pb_ind)
         self.program_block.append('')
 
@@ -106,6 +116,8 @@ class Codegen:
         pb_ind = self.semantic_stack.pop()
         if_exp = self.semantic_stack.pop()
         i = len(self.program_block)
+        print(pb_ind, if_exp, len(self.program_block))
+        print(self.program_block)
         self.program_block[pb_ind] = f'(JPF, {if_exp}, {i+1},)'
         self.semantic_stack.append(i)
         self.program_block.append('')
@@ -139,10 +151,15 @@ class Codegen:
     def signed_num(self, arg=None):
         number = self.semantic_stack.pop()
         sign = self.semantic_stack.pop()
+        #todo check here
         if sign == '-':
-            self.semantic_stack.append(-number)
+            self.pnum(-number)
         else:
-            self.semantic_stack.append(number)
+            self.pnum(number)
+        # if sign == '-':
+        #     self.semantic_stack.append(-number)
+        # else:
+        #     self.semantic_stack.append(number)
 
     def save_program_block(self):
         with open('output.txt', 'w') as output:
@@ -159,6 +176,10 @@ class Codegen:
         self.program_block.append(f'(PRINT, {to_print}, , )')
 
     def save_arr(self, arg=None):
+        index = self.semantic_stack.pop()
+        for i in range(1, int(self.temp[index])):
+            self.program_block.append(f'(ASSIGN, #0, {self.cur_mem_addr}, )')
+            self.cur_mem_addr += 4
         # TODO save size of array
-        pass
+
 

@@ -71,7 +71,7 @@ class Codegen:
         self.program_block.append(f'(ADD, #{var_addr}, {t}, {t})')
         self.semantic_stack.append('@'+str(t))
         # print('var_addr', var_addr, '\tindex', index)
-        self.temp.update({t: var_addr + 4*int(self.temp[index])})
+        # self.temp.update({t: var_addr + 4*int(self.temp[index])})
 
     def assign(self, arg=None):
         op2 = self.semantic_stack.pop()
@@ -100,7 +100,7 @@ class Codegen:
         if operation == '+':
             self.program_block.append(f'(ADD, {op1}, {op2}, {t})')
         else:
-            self.program_block.append(f'(SUB, {op1}, {op2}, {t})')
+            self.program_block.append(f'(SUB, {op2}, {op1}, {t})')
 
     def mult(self, arg=None):
         op1 = self.semantic_stack.pop()

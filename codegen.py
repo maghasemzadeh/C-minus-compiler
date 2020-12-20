@@ -41,7 +41,7 @@ class Codegen:
     def generate(self, action_symbol, arg=None):
         self.action_symbols[action_symbol[1:]](arg)
         t = action_symbol[1:]
-        print(f'{t}({arg})\t\t-> {str(self.semantic_stack)[:-1]}')
+        # print(f'{t}({arg})\t\t-> {str(self.semantic_stack)[:-1]}')
         # print(self.temp)
         # print(self.memory)
         # print('------------------------------')
@@ -120,8 +120,8 @@ class Codegen:
         pb_ind = self.semantic_stack.pop()
         if_exp = self.semantic_stack.pop()
         i = len(self.program_block)
-        print(pb_ind, if_exp, len(self.program_block))
-        print(self.program_block)
+        # print(pb_ind, if_exp, len(self.program_block))
+        # print(self.program_block)
         self.program_block[pb_ind] = f'(JPF, {if_exp}, {i+1},)'
         self.semantic_stack.append(i)
         self.program_block.append('')

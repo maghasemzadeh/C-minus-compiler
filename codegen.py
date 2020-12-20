@@ -42,9 +42,9 @@ class Codegen:
         self.action_symbols[action_symbol[1:]](arg)
         t = action_symbol[1:]
         print(f'{t}({arg})\t\t-> {str(self.semantic_stack)[:-1]}')
-        print(self.temp)
-        print(self.memory)
-        print('------------------------------')
+        # print(self.temp)
+        # print(self.memory)
+        # print('------------------------------')
 
     def pid(self, arg):
         # TODO symbol table
@@ -68,9 +68,9 @@ class Codegen:
         var_addr = self.semantic_stack.pop()
         t = self.get_temp()
         self.program_block.append(f'(MULT, {index}, #4, {t})')
-        self.program_block.append(f'(ADD, {var_addr}, {t}, {t})')
+        self.program_block.append(f'(ADD, #{var_addr}, {t}, {t})')
         self.semantic_stack.append('@'+str(t))
-        print('var_addr', var_addr, '\tindex', index)
+        # print('var_addr', var_addr, '\tindex', index)
         self.temp.update({t: var_addr + 4*int(self.temp[index])})
 
     def assign(self, arg=None):
@@ -112,7 +112,7 @@ class Codegen:
 
     def save(self, arg=None):
         pb_ind = len(self.program_block)
-        print('------------------------------------', pb_ind)
+        # print('------------------------------------', pb_ind)
         self.semantic_stack.append(pb_ind)
         self.program_block.append('')
 

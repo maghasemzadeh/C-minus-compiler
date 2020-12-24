@@ -41,7 +41,7 @@ class Codegen:
     def generate(self, action_symbol, arg=None):
         self.action_symbols[action_symbol[1:]](arg)
         t = action_symbol[1:]
-        # print(f'{t}({arg})\t\t-> {str(self.semantic_stack)[:-1]}')
+        print(f'{t}({arg})\r\t\t-> {str(self.semantic_stack)[:-1]}')
         # print(self.temp)
         # print(self.memory)
         # print('------------------------------')

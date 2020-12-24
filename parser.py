@@ -61,9 +61,11 @@ class Parser:
         while True:
             if self._advance_input:
                 lookahead, lexeme, token_type, line_no = self._get_valid_token()
+                # print(f'lookahead={lookahead}, lexeme={lexeme}, token_type={token_type}, line_no={line_no}')
                 if lookahead is None and lexeme is None:
                     return
             stack_top = self.stack[-1]
+            # print(self.stack, lexeme)
             if stack_top in self.non_terminals:
                 self._fetch_rules(stack_top, lookahead, line_no)
             elif stack_top == lookahead:

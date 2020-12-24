@@ -38,8 +38,6 @@ class Scanner:
             self.pointer = 0
             self.total_tokens.append(self.tokens_in_line)
             self.tokens_in_line = []
-            # print('\n')
-
         try:
             self.pointer, lexeme, token_type, self.comment_activated = self.get_next_token_in_line(self.line + '\n',
                                                                                               self.pointer,
@@ -49,8 +47,6 @@ class Scanner:
             if self.comment_activated:
                 self.comment_start_line = min(self.comment_start_line, self.line_number)
             return lexeme, token_type, self.line_number
-
-
         except PanicException as pe:
             if self.lexical_errors.__contains__(self.line_number + 1):
                 self.lexical_errors[self.line_number + 1].append((self.line_number + 1, pe.lexeme, pe.message))
@@ -62,7 +58,6 @@ class Scanner:
     def show_results(self):
         lexeme = ''
         while lexeme != '$':
-            # print(lexeme)
             lexeme = self.get_next_token()
 
         write_symbols_to_file(self.symbol_table)
@@ -159,7 +154,8 @@ class Scanner:
     def comment_dfa(self, pointer, line, comment_activated):
         token_type = 'COMMENT'
         if comment_activated:
-            return *self.comment_paragraph_dfa(pointer, line, ''), token_type
+            pointer, lexeme, comment_activated = self.comment_paragraph_dfa(pointer, line, '')
+            return pointer, lexeme, token_type, comment_activated
         lexeme = line[pointer]
         pointer, cur_char, lexeme = self.next_iter(pointer, line, lexeme)
         if cur_char == '/':

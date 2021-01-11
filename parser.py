@@ -45,7 +45,7 @@ class Parser:
 
         first_dict = self.get_first_dict(path=paths.get('firsts', 'Firsts.csv'))
         follow_dict = self.get_follow_dict(path=paths.get('follows', 'Follows.csv'))
-        grammar_tuples = self.get_grammar_tuple(path=paths.get('grammar', 'Grammar.csv'))
+        grammar_tuples = self.get_grammar_tuple(path=paths.get('grammar', 'old_Grammar_phase3.csv'))
         predict_list = self.get_predict_list(path=paths.get('predicts', 'Predicts.csv'))
         start_symbol = grammar_tuples[0][0]
         self.parse_table = self.get_parse_table(grammar_tuples, first_dict, follow_dict, predict_list)

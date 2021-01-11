@@ -24,7 +24,12 @@ class Codegen:
             'while': self.whil,
             'pop': self.pop,
             'output': self.output,
-            'save_arr': self.save_arr
+            'save_arr': self.save_arr,
+            'tmp_save': self.tmp_save,
+            'cmp_save': self.cmp_save,
+            'jp_break': self.jp_break,
+            'jp_switch': self.jp_switch,
+            'jpf_switch': self.jpf_switch,
         }
         self.arg_actions = ['pid', 'pnum', 'sign', 'relop_sign']
 
@@ -193,3 +198,36 @@ class Codegen:
             self.program_block.append(f'(ASSIGN, #0, {self.cur_mem_addr}, )')
             self.cur_mem_addr += 4
         # TODO save size of array
+
+    def tmp_save(self):
+        i = len(self.program_block)
+        self.program_block.append(f'(JP, {i+2}, ,)')
+        self.semantic_stack.append(i+1)
+
+    def cmp_save(self):
+        t = self.get_temp()
+        op1 = self.semantic_stack.pop()
+        op2 = self.semantic_stack[-1]
+        self.program_block.append(f'(EQ, {op1}, {op2}, {t})')
+        self.semantic_stack.append(t)
+        i = len(self.program_block)
+        self.semantic_stack.append(i)
+
+    def jp_break(self):
+        self.program_block.append(f'(JP, {self.semantic_stack[-4]}, ,)')
+
+    def jpf_switch(self):
+        ind = self.semantic_stack[-1]
+        i = len(self.program_block)
+        self.program_block[ind] = f'(JPF, {self.semantic_stack[-2]}, {i} ,)'
+        self.semantic_stack.pop()
+        self.semantic_stack.pop()
+
+    def jp_switch(self):
+        i = len(self.program_block)
+        ind = self.semantic_stack[-1]
+        self.program_block[ind] = f'(JP, {i}, ,)'
+        #todo i'm not sure how many times to pop
+        self.semantic_stack.pop()
+
+

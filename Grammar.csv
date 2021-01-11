@@ -36,10 +36,10 @@ Iteration-stmt while ( #label Expression ) #save Statement #while
 Return-stmt return Return-stmt-prime
 Return-stmt-prime ; 
 Return-stmt-prime Expression ; 
-Switch-stmt switch #tmp_save ( Expression ) { Case-stmts Default-stmt #jp_switch}
+Switch-stmt switch #tmp_save ( Expression ) { Case-stmts Default-stmt } #jp_switch
 Case-stmts Case-stmt Case-stmts
 Case-stmts ε
-Case-stmt case #pnum NUM #cmp_save: Statement-list #jpf_switch
+Case-stmt case #pnum NUM : #cmp_save Statement-list #jpf_switch
 Default-stmt default : Statement-list
 Default-stmt ε
 Expression Simple-expression-zegond

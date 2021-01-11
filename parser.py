@@ -45,7 +45,7 @@ class Parser:
 
         first_dict = self.get_first_dict(path=paths.get('firsts', 'Firsts.csv'))
         follow_dict = self.get_follow_dict(path=paths.get('follows', 'Follows.csv'))
-        grammar_tuples = self.get_grammar_tuple(path=paths.get('grammar', 'old_Grammar_phase3.csv'))
+        grammar_tuples = self.get_grammar_tuple(path=paths.get('grammar', 'Grammar.csv'))
         predict_list = self.get_predict_list(path=paths.get('predicts', 'Predicts.csv'))
         start_symbol = grammar_tuples[0][0]
         self.parse_table = self.get_parse_table(grammar_tuples, first_dict, follow_dict, predict_list)
@@ -64,6 +64,7 @@ class Parser:
                 # print(f'lookahead={lookahead}, lexeme={lexeme}, token_type={token_type}, line_no={line_no}')
                 if lookahead is None and lexeme is None:
                     return
+            self.codegen.save_program_block()
             stack_top = self.stack[-1]
             # print(self.stack, lexeme)
             if stack_top in self.non_terminals:

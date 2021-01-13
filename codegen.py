@@ -24,7 +24,12 @@ class Codegen:
             'while': self.whil,
             'pop': self.pop,
             'output': self.output,
-            'save_arr': self.save_arr
+            'save_arr': self.save_arr,
+            'tmp_save': self.tmp_save,
+            'cmp_save': self.cmp_save,
+            'jp_break': self.jp_break,
+            'jp_switch': self.jp_switch,
+            'jpf_switch': self.jpf_switch,
         }
         self.arg_actions = ['pid', 'pnum', 'sign', 'relop_sign']
 
@@ -69,7 +74,7 @@ class Codegen:
         t = self.get_temp()
         self.program_block.append(f'(MULT, {index}, #4, {t})')
         self.program_block.append(f'(ADD, #{var_addr}, {t}, {t})')
-        self.semantic_stack.append('@'+str(t))
+        self.semantic_stack.append('@' + str(t))
         # print('var_addr', var_addr, '\tindex', index)
         # self.temp.update({t: var_addr + 4*int(self.temp[index])})
 
@@ -83,13 +88,12 @@ class Codegen:
 
     def whil(self, arg=None):
         i = len(self.program_block)
-        self.program_block[self.semantic_stack[-1]] = f'(JPF, {self.semantic_stack[-2]}, {i+1}, )'
-        self.program_block.append(f'(JP, {self.semantic_stack[-3]+1}, , )')
+        self.program_block[self.semantic_stack[-1]] = f'(JPF, {self.semantic_stack[-2]}, {i + 1}, )'
+        self.program_block.append(f'(JP, {self.semantic_stack[-3] + 1}, , )')
         # self.program_block.append('')
         self.semantic_stack.pop()
         self.semantic_stack.pop()
         self.semantic_stack.pop()
-
 
     def add(self, arg=None):
         op1 = self.semantic_stack.pop()
@@ -108,7 +112,6 @@ class Codegen:
         t = self.get_temp()
         self.semantic_stack.append(t)
         self.program_block.append(f'(MULT, {op1}, {op2}, {t})')
-        
 
     def save(self, arg=None):
         pb_ind = len(self.program_block)
@@ -122,7 +125,7 @@ class Codegen:
         i = len(self.program_block)
         # print(pb_ind, if_exp, len(self.program_block))
         # print(self.program_block)
-        self.program_block[pb_ind] = f'(JPF, {if_exp}, {i+1},)'
+        self.program_block[pb_ind] = f'(JPF, {if_exp}, {i + 1},)'
         self.semantic_stack.append(i)
         self.program_block.append('')
 
@@ -153,30 +156,41 @@ class Codegen:
         self.semantic_stack.append(arg)
 
     def signed_num(self, arg=None):
-        number = self.semantic_stack.pop()
+        n = self.semantic_stack.pop()
+        print(n)
         sign = self.semantic_stack.pop()
-        #todo check here
-        if sign == '-':
-            self.pnum(-number)
+        if self.temp.__contains__(n):
+            number = int(self.temp[n])
+            if sign == '-':
+                self.pnum(-number)
+            else:
+                self.pnum(number)
         else:
-            self.pnum(number)
-        # if sign == '-':
-        #     self.semantic_stack.append(-number)
-        # else:
-        #     self.semantic_stack.append(number)
+            for key, val in self.memory.items():
+                if val == n:
+                    print(key, val)
+                    number = val
+                    t = self.get_temp()
+                    self.semantic_stack.append(t)
+                    if sign == '-':
+                        self.program_block.append(f'(MULT, {number}, #-1, {t})')
+                    else:
+                        self.program_block.append(f'(MULT, {number}, #1, {t})')
+
+        print('---------------------', number)
+        # todo check here
 
     def save_program_block(self):
         with open('output.txt', 'w') as output:
             for i, block in enumerate(self.program_block):
                 output.write(f'{i}\t{block}\n')
 
-
     def pop(self, arg=None):
         self.semantic_stack.pop()
 
-
     def output(self, arg=None):
         to_print = self.semantic_stack.pop()
+        print('-----' , to_print)
         self.program_block.append(f'(PRINT, {to_print}, , )')
 
     def save_arr(self, arg=None):
@@ -185,5 +199,44 @@ class Codegen:
             self.program_block.append(f'(ASSIGN, #0, {self.cur_mem_addr}, )')
             self.cur_mem_addr += 4
         # TODO save size of array
+
+    def tmp_save(self, arg=None):
+        # print('temp save')
+        i = len(self.program_block)
+        self.program_block.append(f'(JP, {i+2}, ,)')
+        self.program_block.append('')
+        self.semantic_stack.append(i+1)
+
+    def cmp_save(self, arg=None):
+        # print('cmp save')
+        t = self.get_temp()
+        op1 = self.semantic_stack.pop()
+        op2 = self.semantic_stack[-1]
+        self.program_block.append(f'(EQ, {op1}, {op2}, {t})')
+        self.semantic_stack.append(t)
+        i = len(self.program_block)
+        self.semantic_stack.append(i)
+
+    def jp_break(self, arg=None):
+        # print('jp break')
+        self.program_block.append(f'(JP, {self.semantic_stack[-4]}, ,)')
+
+    def jpf_switch(self, arg=None):
+        # print('jpf switch')
+        ind = self.semantic_stack[-1]
+        # print(ind)
+        i = len(self.program_block)
+        self.program_block[ind] = f'(JPF, {self.semantic_stack[-2]}, {i} ,)'
+        self.semantic_stack.pop()
+        self.semantic_stack.pop()
+
+    def jp_switch(self, arg=None):
+        # print('jp switch')
+        i = len(self.program_block)
+        ind = self.semantic_stack[-2]
+        # print(ind)
+        self.program_block[ind] = f'(JP, {i}, ,)'
+        self.semantic_stack.pop()
+        self.semantic_stack.pop()
 
 

@@ -64,6 +64,7 @@ class Parser:
                 # print(f'lookahead={lookahead}, lexeme={lexeme}, token_type={token_type}, line_no={line_no}')
                 if lookahead is None and lexeme is None:
                     return
+            self.codegen.save_program_block()
             stack_top = self.stack[-1]
             # print(self.stack, lexeme)
             if stack_top in self.non_terminals:

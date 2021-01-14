@@ -82,6 +82,8 @@ class Parser:
             elif re.match('^#\w+$', stack_top):
                 self.stack.pop()
                 self.tree.add_node(len(self.stack), stack_top)
+                if stack_top == '#jp_break':
+                    self.codegen.generate(stack_top, line_no)
                 if stack_top[1:] in self.codegen.arg_actions:
                     self.codegen.generate(stack_top, lexeme)
                 else:

@@ -1,11 +1,13 @@
 class Codegen:
     def __init__(self):
+        self.semantic_errors = []
         self.semantic_stack = []
         self.program_block = []
         self.cur_temp = 1000
         self.temp = {}
         self.cur_mem_addr = 500
         self.memory = {}
+        self.break_stack = []
         self.action_symbols = {
             'pid': self.pid,
             'pnum': self.pnum,
@@ -87,6 +89,7 @@ class Codegen:
         # self.temp[t] = op1
 
     def whil(self, arg=None):
+        print(self.break_stack.pop())
         i = len(self.program_block)
         self.program_block[self.semantic_stack[-1]] = f'(JPF, {self.semantic_stack[-2]}, {i + 1}, )'
         self.program_block.append(f'(JP, {self.semantic_stack[-3] + 1}, , )')
@@ -135,6 +138,7 @@ class Codegen:
         self.program_block[pb_ind] = f'(JP, {i}, ,)'
 
     def label(self, arg=None):
+        self.break_stack.append('while')
         pb_ind = len(self.program_block) - 1
         self.semantic_stack.append(pb_ind)
 
@@ -201,6 +205,7 @@ class Codegen:
         # TODO save size of array
 
     def tmp_save(self, arg=None):
+        self.break_stack.append('switch')
         # print('temp save')
         i = len(self.program_block)
         self.program_block.append(f'(JP, {i+2}, ,)')
@@ -217,9 +222,16 @@ class Codegen:
         i = len(self.program_block)
         self.semantic_stack.append(i)
 
-    def jp_break(self, arg=None):
+    def jp_break(self, line_no):
         # print('jp break')
-        self.program_block.append(f'(JP, {self.semantic_stack[-4]}, ,)')
+        if len(self.break_stack) == 0:
+            err_msg = f"{line_no}: Semantic Error! No 'while' or 'switch' found for 'break'"
+            self.semantic_errors.append(err_msg)
+        break_top = self.break_stack.pop()
+        if break_top == 'switch':
+            self.program_block.append(f'(JP, {self.semantic_stack[-4]}, ,)')
+        else: #todo here for break in while loops
+            pass
 
     def jpf_switch(self, arg=None):
         # print('jpf switch')
@@ -232,6 +244,7 @@ class Codegen:
 
     def jp_switch(self, arg=None):
         # print('jp switch')
+        print(self.break_stack.pop())
         i = len(self.program_block)
         ind = self.semantic_stack[-2]
         # print(ind)

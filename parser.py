@@ -58,6 +58,8 @@ class Parser:
         self.codegen = Codegen()
 
     def parse(self):
+        void_type = False
+        args = []
         while True:
             if self._advance_input:
                 lookahead, lexeme, token_type, line_no = self._get_valid_token()
@@ -80,11 +82,26 @@ class Parser:
             elif lookahead == EOF:
                 pass
             elif re.match('^#\w+$', stack_top):
+                print(stack_top, args)
                 self.stack.pop()
                 self.tree.add_node(len(self.stack), stack_top)
                 if stack_top == '#jp_break':
                     self.codegen.generate(stack_top, line_no)
-                if stack_top[1:] in self.codegen.arg_actions:
+                elif stack_top == '#type':
+                    if lexeme == 'void': void_type = True
+                    else: void_type = False
+                    args.append(void_type)
+                elif stack_top == '#pid':
+                    args.append(lexeme)
+                    self.codegen.generate(stack_top, args)
+                elif stack_top in ['#var', '#save_arr']:
+                    args.append(line_no)
+                    self.codegen.generate(stack_top, args)
+                    args = []
+                elif stack_top == '#pnum_arr':
+                    args.append(lexeme)
+                    self.codegen.generate('#pnum', lexeme)
+                elif stack_top[1:] in self.codegen.arg_actions:
                     self.codegen.generate(stack_top, lexeme)
                 else:
                     self.codegen.generate(stack_top)

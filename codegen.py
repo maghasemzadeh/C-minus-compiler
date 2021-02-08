@@ -32,6 +32,7 @@ class Codegen:
             'jp_break': self.jp_break,
             'jp_switch': self.jp_switch,
             'jpf_switch': self.jpf_switch,
+            'function_call': self.function_call,
         }
         self.arg_actions = ['pid', 'pnum', 'sign', 'relop_sign']
 
@@ -49,6 +50,8 @@ class Codegen:
         self.action_symbols[action_symbol[1:]](arg)
         t = action_symbol[1:]
         print(f'{t}({arg})\r\t\t-> {str(self.semantic_stack)[:-1]}')
+        if not self.main_access_link:
+            self.main_access_link = arg
         # print(self.temp)
         # print(self.memory)
         # print('------------------------------')
@@ -252,4 +255,20 @@ class Codegen:
         self.semantic_stack.pop()
         self.semantic_stack.pop()
 
+
+    def function_call(self, arg):
+        if arg == 'output':
+            to_print = self.semantic_stack.pop()
+            print('-----' , to_print)
+            self.program_block.append(f'(PRINT, {to_print}, , )')
+            return
+        t = self.get_temp()
+        self.program_block.append(f'(ASSIGN, #0, {t}, )')
+        if not self.main_access_link:
+            raise Exception('Main Access Link not defined yet!')
+        t = self.get_temp()
+        self.program_block.append(f'(ASSIGN, {self.main_access_link}, {t}, )')
+        t = self.get_runtime_cur()
+        self.program_block.append(f'(ASSIGN, {arg}, {t}, )')
+        self.temp.update({num_addr: arg})
 

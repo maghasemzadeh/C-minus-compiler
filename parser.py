@@ -82,20 +82,21 @@ class Parser:
             elif lookahead == EOF:
                 pass
             elif re.match('^#\w+$', stack_top):
-                print(stack_top, args)
+                # print(stack_top, args)
                 self.stack.pop()
                 self.tree.add_node(len(self.stack), stack_top)
                 if stack_top == '#jp_break':
                     self.codegen.generate(stack_top, line_no)
                 elif stack_top == '#type':
-                    if lexeme == 'void': void_type = True
-                    else: void_type = False
+                    void_type = lexeme == 'void'
                     args.append(void_type)
                 elif stack_top == '#pid':
                     args.append(lexeme)
-                    self.codegen.generate(stack_top, args)
-                elif stack_top in ['#var', '#save_arr']:
                     args.append(line_no)
+                    self.codegen.generate(stack_top, args)
+                    if len(args) == 2:
+                        args = []
+                elif stack_top in ['#var', '#save_arr']:
                     self.codegen.generate(stack_top, args)
                     args = []
                 elif stack_top == '#pnum_arr':
@@ -103,8 +104,12 @@ class Parser:
                     self.codegen.generate('#pnum', lexeme)
                 elif stack_top[1:] in self.codegen.arg_actions:
                     self.codegen.generate(stack_top, lexeme)
+                elif stack_top[1:] in ["#arg", '#function_call']:
+                    self.codegen.generate(stack_top, line_no)
                 else:
                     self.codegen.generate(stack_top)
+                    if stack_top == '#fun_declarated':
+                        args = []
                 self._advance_input = False
             else:
                 self.stack.pop()

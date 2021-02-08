@@ -18,4 +18,6 @@ parse_tree.txt
 syntax_errors.txt
 output.txt
 expected.txt
-venv/
+.idea/
+tester_Linux.out
+tester_Windows.exe

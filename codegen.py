@@ -32,9 +32,14 @@ class Codegen:
             'jp_break': self.jp_break,
             'jp_switch': self.jp_switch,
             'jpf_switch': self.jpf_switch,
+<<<<<<< HEAD
             'function_call': self.function_call,
+=======
+            'var' : self.var,
+>>>>>>> 2757b9271d97f621fe372c6e3027926b935e10e3
         }
         self.arg_actions = ['pid', 'pnum', 'sign', 'relop_sign']
+        self.symbol_table = {}
 
     def find_addr(self):
         t = self.cur_mem_addr
@@ -56,16 +61,31 @@ class Codegen:
         # print(self.memory)
         # print('------------------------------')
 
-    def pid(self, arg):
-        # TODO symbol table
+    def pid(self, args):
+        lexeme = args[1]
+        void_type = args[0]
         for key, val in self.memory.items():
-            if key == arg:
+            if key == lexeme:
                 self.semantic_stack.append(val)
                 return
         addr = self.find_addr()
-        self.memory.update({arg: addr})
+        self.memory.update({lexeme: addr})
+        sym = {'addr': addr, 'data_type': 'void' if void_type else 'int'}
+        self.symbol_table.update({lexeme: sym})
         self.program_block.append(f'(ASSIGN, #0, {addr}, )')
         self.semantic_stack.append(addr)
+
+    def var(self, args):
+        print('args', type(args), args)
+        void_type = args[0]
+        lexeme = args[1]
+        line_no = args[2]
+        if void_type:
+            err_msg = f"{line_no}: Semantic Error! Illegal type of void for {lexeme}."
+            self.semantic_errors.append(err_msg)
+            del self.symbol_table[lexeme]
+            return
+        self.symbol_table[lexeme].update({'type': 'var'})
 
     def pnum(self, arg):
         num_addr = self.get_temp()
@@ -200,12 +220,21 @@ class Codegen:
         print('-----' , to_print)
         self.program_block.append(f'(PRINT, {to_print}, , )')
 
-    def save_arr(self, arg=None):
+    def save_arr(self, args):
+        void_type = args[0]
+        lexeme = args[1]
+        size = args[2]
+        line_no = args[3]
         index = self.semantic_stack.pop()
         for i in range(1, int(self.temp[index])):
             self.program_block.append(f'(ASSIGN, #0, {self.cur_mem_addr}, )')
             self.cur_mem_addr += 4
-        # TODO save size of array
+        if void_type:
+            err_msg = f"{line_no}: Semantic Error! Illegal type of void for {lexeme}."
+            self.semantic_errors.append(err_msg)
+            del self.symbol_table[lexeme]
+            return
+        self.symbol_table[lexeme].update({'type': 'arr'})
 
     def tmp_save(self, arg=None):
         self.break_stack.append('switch')

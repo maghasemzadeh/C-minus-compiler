@@ -2,11 +2,11 @@ Program Declaration-list $
 Declaration-list Declaration Declaration-list
 Declaration-list ε
 Declaration Declaration-initial Declaration-prime
-Declaration-initial Type-specifier #pid ID
+Declaration-initial #type Type-specifier #pid ID
 Declaration-prime Fun-declaration-prime
 Declaration-prime Var-declaration-prime
-Var-declaration-prime ; #pop
-Var-declaration-prime [ #pnum NUM ]  #save_arr ; 
+Var-declaration-prime #var ; #pop
+Var-declaration-prime [ #pnum_arr NUM ]  #save_arr ;
 Fun-declaration-prime ( Params ) Compound-stmt
 Type-specifier int
 Type-specifier void

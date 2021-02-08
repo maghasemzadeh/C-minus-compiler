@@ -47,13 +47,17 @@ class Codegen:
             'param_var': self.param_var,
             'param_arr': self.param_arr,
             'fun_declarated': self.fun_declarated,
+            'arg_declaration': self.arg_declaration,
+            'return_stmt': self.return_stmt,
         }
-        self.arg_actions = ['pid', 'pnum', 'sign', 'relop_sign', 'function_call', 'fun_declaration']
+        self.arg_actions = ['pid', 'pnum', 'sign', 'relop_sign',
+                            'fun_declaration', 'arg_declaration']
         self.symbol_table = {}
         self.temp_args = []
         self.function = None
         self.callers = []
         self.function_arg_number = 0
+        self.temp_id = None
 
     def find_addr(self):
         t = self.cur_mem_addr
@@ -76,9 +80,6 @@ class Codegen:
             self.main_access_link = t
         print(f'{action_symbol[1:]}({arg})\r\t\t\t\t\t\t\t\t-> {str(self.semantic_stack)[:-1]}')
         self.action_symbols[action_symbol[1:]](arg)
-        # print(self.temp)
-        # print(self.memory)
-        # print('------------------------------')
 
     def pid(self, args):
         tmp = 0
@@ -88,20 +89,20 @@ class Codegen:
             tmp = 1
         lexeme = args[1 - tmp]
         line_no = args[2 - tmp]
-        pprint(self.symbol_table)
+        self.temp_id = lexeme
         if lexeme in self.symbol_table and self.symbol_table[lexeme]['type'] == 'func':
             self.callers.append(lexeme)
             self.function = lexeme
-            t = self.get_temp()
+            t = self.symbol_table[lexeme]['return_address']
             l = len(self.program_block)
             self.program_block.append(f'(ASSIGN, {l}, {t}, )')
-            self.symbol_table[lexeme].update({'return_address': t})
             return
         if self.fun_declarating:
-            for key, value in self.symbol_table[self.function]["args"].items():
+            for key, value in self.symbol_table[self.function]["args"]:
                 if key == lexeme:
                     self.semantic_stack.append(value['addr'])
                     return
+            print(self.function)
             for key, value in self.symbol_table[self.function]["vars"].items():
                 if key == lexeme:
                     self.semantic_stack.append(value['addr'])
@@ -110,6 +111,10 @@ class Codegen:
                 if key == lexeme:
                     self.semantic_stack.append(val)
                     return
+            if lexeme == 'output':
+                return
+            pprint(self.symbol_table)
+            print(f'voiddddddddddd type {lexeme}')
             if void_type:
                 err_msg = f"{line_no}: Semantic Error! Illegal type of void for {lexeme}."
                 self.semantic_errors.append(err_msg)
@@ -133,13 +138,12 @@ class Codegen:
                 return
             addr = self.find_addr()
             self.memory.update({lexeme: addr})
-            sym = {'addr': addr, 'data_type': 'void' if void_type else 'int'}
+            sym = {'addr': addr, 'data_type': 'void' if void_type else 'int', 'args': {}, 'vars': {}}
             self.symbol_table.update({lexeme: sym})
             self.program_block.append(f'(ASSIGN, #0, {addr}, )')
             self.semantic_stack.append(addr)
 
     def var(self, args):
-        # print('args', type(args), args)
         void_type = args[0]
         lexeme = args[1]
         line_no = args[2]
@@ -148,7 +152,10 @@ class Codegen:
             self.semantic_errors.append(err_msg)
             del self.symbol_table[lexeme]
             return
-        self.symbol_table[lexeme].update({'type': 'var'})
+        if self.function:
+            self.symbol_table[self.function]['vars'][lexeme].update({'type': 'var'})
+        else:
+            self.symbol_table[lexeme].update({'type': 'var'})
 
     def pnum(self, arg):
         num_addr = self.get_temp()
@@ -163,7 +170,6 @@ class Codegen:
         self.program_block.append(f'(MULT, {index}, #4, {t})')
         self.program_block.append(f'(ADD, #{var_addr}, {t}, {t})')
         self.semantic_stack.append('@' + str(t))
-        # print('var_addr', var_addr, '\tindex', index)
         # self.temp.update({t: var_addr + 4*int(self.temp[index])})
 
     def assign(self, arg=None):
@@ -175,7 +181,6 @@ class Codegen:
         # self.temp[t] = op1
 
     def whil(self, arg=None):
-        print(self.break_stack.pop())
         i = len(self.program_block)
         self.program_block[self.semantic_stack[-1]] = f'(JPF, {self.semantic_stack[-2]}, {i + 1}, )'
         self.program_block.append(f'(JP, {self.semantic_stack[-3] + 1}, , )')
@@ -204,7 +209,6 @@ class Codegen:
 
     def save(self, arg=None):
         pb_ind = len(self.program_block)
-        # print('------------------------------------', pb_ind)
         self.semantic_stack.append(pb_ind)
         self.program_block.append('')
 
@@ -212,8 +216,7 @@ class Codegen:
         pb_ind = self.semantic_stack.pop()
         if_exp = self.semantic_stack.pop()
         i = len(self.program_block)
-        # print(pb_ind, if_exp, len(self.program_block))
-        # print(self.program_block)
+
         self.program_block[pb_ind] = f'(JPF, {if_exp}, {i + 1},)'
         self.semantic_stack.append(i)
         self.program_block.append('')
@@ -247,7 +250,6 @@ class Codegen:
 
     def signed_num(self, arg=None):
         n = self.semantic_stack.pop()
-        print(n)
         sign = self.semantic_stack.pop()
         if self.temp.__contains__(n):
             number = int(self.temp[n])
@@ -258,7 +260,6 @@ class Codegen:
         else:
             for key, val in self.memory.items():
                 if val == n:
-                    print(key, val)
                     number = val
                     t = self.get_temp()
                     self.semantic_stack.append(t)
@@ -267,7 +268,6 @@ class Codegen:
                     else:
                         self.program_block.append(f'(MULT, {number}, #1, {t})')
 
-        print('---------------------', number)
         # todo check here
 
     def save_program_block(self):
@@ -280,9 +280,9 @@ class Codegen:
 
     def output(self, arg=None):
         to_print = self.semantic_stack.pop()
-        print('-----', to_print)
         self.semantic_stack.append(None)
         self.program_block.append(f'(PRINT, {to_print}, , )')
+
 
     def save_arr(self, args):
         void_type = args[0]
@@ -300,18 +300,15 @@ class Codegen:
             return
 
         self.symbol_table[lexeme].update({'type': 'arr'})
-        print(self.symbol_table)
 
     def tmp_save(self, arg=None):
         self.break_stack.append('switch')
-        # print('temp save')
         i = len(self.program_block)
         self.program_block.append(f'(JP, {i + 2}, ,)')
         self.program_block.append('')
         self.semantic_stack.append(i + 1)
 
     def cmp_save(self, arg=None):
-        # print('cmp save')
         t = self.get_temp()
         op1 = self.semantic_stack.pop()
         op2 = self.semantic_stack[-1]
@@ -321,7 +318,6 @@ class Codegen:
         self.semantic_stack.append(i)
 
     def jp_break(self, line_no):
-        # print('jp break')
         if len(self.break_stack) == 0:
             err_msg = f"{line_no}: Semantic Error! No 'while' or 'switch' found for 'break'"
             self.semantic_errors.append(err_msg)
@@ -332,35 +328,40 @@ class Codegen:
             self.program_block.append(f'(JP, {self.semantic_stack[-2]}, ,)')
 
     def jpf_switch(self, arg=None):
-        # print('jpf switch')
         ind = self.semantic_stack[-1]
-        # print(ind)
         i = len(self.program_block)
         self.program_block[ind] = f'(JPF, {self.semantic_stack[-2]}, {i} ,)'
         self.semantic_stack.pop()
         self.semantic_stack.pop()
 
     def jp_switch(self, arg=None):
-        # print('jp switch')
-        print(self.break_stack.pop())
         i = len(self.program_block)
         ind = self.semantic_stack[-2]
-        # print(ind)
         self.program_block[ind] = f'(JP, {i}, ,)'
         self.semantic_stack.pop()
         self.semantic_stack.pop()
 
     def function_call(self, arg):
+        if self.function == 'output':
+            print('is output')
+            self.output()
+            return
         address = self.symbol_table[self.function]['addr']
         self.program_block.append(f'(jp, {address}, , )')
+        print(self.function_arg_number, len(self.symbol_table[self.function]['args']))
         if self.function_arg_number != len(self.symbol_table[self.function]['args']):
             err_msg = f"{arg}: semantic error! Mismatch in numbers of arguments of {self.function}"
             self.semantic_errors.append(err_msg)
             return
         self.function_arg_number = 0
+        print('callers', self.callers)
+        self.function = self.callers.pop()
+
 
     def arg(self, arg=None):
-        if not self.function:
+        print('hiiiiiiiiiiiiiiiiiiiiiiiiiiii')
+        print(self.function, self.fun_declarating)
+        if not self.function or self.fun_declarating:
             return
         st = self.symbol_table[self.callers[-1]]
         if len(st["args"]) == self.function_arg_number:
@@ -372,24 +373,35 @@ class Codegen:
         self.program_block.append(f'(ASSIGN, {value_address}, {address}, )')
         self.function_arg_number += 1
 
+    def arg_declaration(self, arg):
+        lexeme = arg
+        self.arg_declarating = True
+        self.fun_declarating = True
+        self.function = self.temp_id
+        t = self.find_func_addr()
+        self.symbol_table[self.function].update({'return_value': t})
+        t = self.find_func_addr()
+        self.symbol_table[self.function].update({'return_address': t})
+
     def fun_declaration(self, arg):
         lexeme = arg
-        if lexeme == 'main':
+        if not self.function:
             return
-        self.fun_declarating = True
-        self.arg_declarating = True
+        print("*************************************************************************down with compiler")
         self.symbol_table[lexeme].update({'type': 'func'})
-        self.function = lexeme
 
     def fun_declaration_end(self, arg=None):
-        if lexeme == 'main':
+        if not self.function:
             return
         self.fun_declarating = False
         address = self.symbol_table[self.function]['return_address']
         self.program_block.append(f'(jp, @{address}, , )')
         if self.symbol_table[self.function]['data_type'] == 'void':
             self.semantic_stack.append(None)
-        self.function = self.callers.pop()
+        return_value = self.symbol_table[self.function]['return_value']
+        self.semantic_stack.append(return_value)
+        self.symbol_table[self.function].update({'type': 'func'})
+        self.function = None
 
     def param_arr(self, arg=None):
         self.temp_args[-1][-1].update({'type': 'arr'})
@@ -403,6 +415,12 @@ class Codegen:
         self.symbol_table[self.function].update({'args': self.temp_args, 'addr': len(self.program_block)})
         self.arg_declarating = False
         self.temp_args = []
+
+    def return_stmt(self, arg=None):
+        t = self.symbol_table[self.function]['return_value']
+        l = self.semantic_stack.pop()
+        self.program_block.append(f'(ASSIGN, {l}, {t}, )')
+
 
 # arg type check
 

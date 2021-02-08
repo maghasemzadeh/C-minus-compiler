@@ -3,15 +3,15 @@ Declaration-list Declaration Declaration-list
 Declaration-list ε
 Declaration Declaration-initial Declaration-prime
 Declaration-initial #type Type-specifier #pid ID
-Declaration-prime Fun-declaration-prime #fun_declaration
+Declaration-prime #arg_declaration Fun-declaration-prime #fun_declaration
 Declaration-prime Var-declaration-prime
 Var-declaration-prime #var ; #pop
 Var-declaration-prime [ #pnum_arr NUM ]  #save_arr ;
-Fun-declaration-prime ( Params ) #fun_declarated Compound-stmt
+Fun-declaration-prime #remove_fun_args ( Params ) #fun_declarated Compound-stmt #fun_declaration_end
 Type-specifier int
 Type-specifier void
-Params int #pid ID Param-prime Param-list
-Params void Param-list-void-abtar
+Params #type int #pid ID Param-prime Param-list
+Params #type void Param-list-void-abtar
 Param-list-void-abtar #pid ID Param-prime Param-list
 Param-list-void-abtar ε
 Param-list , Param Param-list
@@ -19,7 +19,7 @@ Param-list ε
 Param Declaration-initial Param-prime
 Param-prime [ ] #param_arr
 Param-prime ε #param_var
-Compound-stmt { Declaration-list Statement-list } 
+Compound-stmt { Declaration-list Statement-list }
 Statement-list Statement Statement-list
 Statement-list ε
 Statement Expression-stmt
@@ -33,7 +33,7 @@ Expression-stmt break #jp_break;
 Expression-stmt ;
 Selection-stmt if ( Expression ) #save Statement else #jpf Statement #jp
 Iteration-stmt while ( #label Expression ) #save Statement #while
-Return-stmt return Return-stmt-prime #fun_declaration_end
+Return-stmt return Return-stmt-prime #return_stmt
 Return-stmt-prime ;
 Return-stmt-prime Expression ;
 Switch-stmt switch #tmp_save ( Expression ) { Case-stmts Default-stmt } #jp_switch
@@ -81,7 +81,7 @@ Var-call-prime ( Args ) #function_call
 Var-call-prime Var-prime
 Var-prime [ Expression ] #array_address
 Var-prime ε
-Factor-prime ( Args ) #output
+Factor-prime ( Args ) #function_call
 Factor-prime ε
 Factor-zegond ( Expression )
 Factor-zegond #pnum NUM

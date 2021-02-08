@@ -102,14 +102,17 @@ class Parser:
                 elif stack_top == '#pnum_arr':
                     args.append(lexeme)
                     self.codegen.generate('#pnum', lexeme)
+                elif stack_top in ["#arg", '#function_call']:
+                    self.codegen.generate(stack_top, line_no)
+                elif stack_top in ['#remove_fun_args']:
+                    args = []
+                elif stack_top == '#fun_declarated':
+                    self.codegen.generate(stack_top)
+                    args = []
                 elif stack_top[1:] in self.codegen.arg_actions:
                     self.codegen.generate(stack_top, lexeme)
-                elif stack_top[1:] in ["#arg", '#function_call']:
-                    self.codegen.generate(stack_top, line_no)
                 else:
                     self.codegen.generate(stack_top)
-                    if stack_top == '#fun_declarated':
-                        args = []
                 self._advance_input = False
             else:
                 self.stack.pop()

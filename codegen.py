@@ -300,6 +300,7 @@ class Codegen:
             return
 
         self.symbol_table[lexeme].update({'type': 'arr'})
+        print(self.symbol_table)
 
     def tmp_save(self, arg=None):
         self.break_stack.append('switch')
@@ -327,8 +328,8 @@ class Codegen:
         break_top = self.break_stack.pop()
         if break_top == 'switch':
             self.program_block.append(f'(JP, {self.semantic_stack[-4]}, ,)')
-        else:  # todo here for break in while loops
-            pass
+        else: #todo here for break in while loops
+            self.program_block.append(f'(JP, {self.semantic_stack[-2]}, ,)')
 
     def jpf_switch(self, arg=None):
         # print('jpf switch')

@@ -352,7 +352,7 @@ class Codegen:
             err_msg = f"{arg}: semantic error! Mismatch in numbers of arguments of {self.calling_function}"
             self.semantic_errors.append(err_msg)
             return
-        if self.symbol_table[self.function]['data_type'] == 'void':
+        if self.symbol_table[self.calling_function]['data_type'] == 'void':
             self.semantic_stack.append(None)
         else:
             return_value = self.symbol_table[self.calling_function]['return_value']
@@ -406,7 +406,6 @@ class Codegen:
         self.symbol_table[self.function].update({'type': 'func'})
         self.function = None
 
-
     def param_arr(self, arg=None):
         self.temp_args[-1][-1].update({'type': 'arr'})
         if self.arg_declarating:
@@ -425,9 +424,17 @@ class Codegen:
         self.temp_args = []
 
     def return_stmt(self, arg=None):
+        if self.symbol_table[self.function]['data_type'] == 'void':
+            return_address = self.symbol_table[self.function]['return_address']
+            self.add_to_program_block(f'(JP, @{return_address}, , )')
+            return
         t = self.symbol_table[self.function]['return_value']
         l = self.semantic_stack.pop()
         self.add_to_program_block(f'(ASSIGN, {l}, {t}, )')
+        return_address = self.symbol_table[self.function]['return_address']
+        self.add_to_program_block(f'(JP, @{return_address}, , )')
+
+
 
     def add_to_program_block(self, str):
         print('------------------->>', str, 'added.')
@@ -440,3 +447,14 @@ class Codegen:
 #     [arg, {'addr': 2, 'data_type': 'void/int', 'type': 'var/arr'}],
 #     [arg, {'addr': 2, 'data_type': 'void/int', 'type': 'var/arr'}],
 # ]
+
+# test  1: 1 func                            done
+# test  2: 1 func                            done
+# test  3: switch, 1 func                    done
+# test  4: while break, inner func
+# test  5: array argument, 1 func
+# test  6: 1 func
+# test  7: switch, 1 func                    done
+# test  8: 1 func, global arr used in func   done
+# test  9: inner func, array argument
+# test 10: while break, inner func

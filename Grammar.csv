@@ -29,7 +29,7 @@ Statement Iteration-stmt
 Statement Return-stmt
 Statement Switch-stmt
 Expression-stmt Expression ; #pop
-Expression-stmt break #jp_break;
+Expression-stmt #jp_break break ;
 Expression-stmt ;
 Selection-stmt if ( Expression ) #save Statement else #jpf Statement #jp
 Iteration-stmt while ( #label Expression ) #save Statement #while

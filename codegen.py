@@ -186,6 +186,7 @@ class Codegen:
         self.semantic_stack.pop()
         self.semantic_stack.pop()
         self.semantic_stack.pop()
+        self.break_stack.pop()
 
     def add(self, arg=None):
         op1 = self.semantic_stack.pop()
@@ -301,6 +302,7 @@ class Codegen:
 
     def tmp_save(self, arg=None):
         self.break_stack.append('switch')
+        print('break stacke now', self.break_stack)
         i = len(self.program_block)
         self.add_to_program_block(f'(JP, {i + 2}, ,)')
         self.add_to_program_block('')
@@ -317,10 +319,11 @@ class Codegen:
         self.semantic_stack.append(i - 1)
 
     def jp_break(self, line_no):
+        print('now we are in break ~~~~~~~~', self.break_stack)
         if len(self.break_stack) == 0:
             err_msg = f"{line_no}: Semantic Error! No 'while' or 'switch' found for 'break'"
             self.semantic_errors.append(err_msg)
-        break_top = self.break_stack.pop()
+        break_top = self.break_stack[-1]
         if break_top == 'switch':
             self.add_to_program_block(f'(JP, {self.semantic_stack[-4]}, ,)')
         else: #todo here for break in while loops
@@ -339,6 +342,7 @@ class Codegen:
         self.program_block[ind] = f'(JP, {i}, ,)'
         self.semantic_stack.pop()
         self.semantic_stack.pop()
+        self.break_stack.pop()
 
     def function_call(self, arg):
         if self.calling_function == 'output':

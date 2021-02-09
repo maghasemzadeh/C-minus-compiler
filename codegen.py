@@ -457,7 +457,7 @@ class Codegen:
 # test  3: switch, 1 func                    done
 # test  4: while break, inner func
 # test  5: array argument, 1 func
-# test  6: 1 func
+# test  6: 1 func                            done
 # test  7: switch, 1 func                    done
 # test  8: 1 func, global arr used in func   done
 # test  9: inner func, array argument

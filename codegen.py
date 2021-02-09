@@ -91,7 +91,7 @@ class Codegen:
         line_no = args[2 - tmp]
         self.temp_id = lexeme
         if lexeme in self.symbol_table and self.symbol_table[lexeme]['type'] == 'func':
-            self.callers.append(lexeme)
+            self.callers.append(self.function)
             self.function = lexeme
             t = self.symbol_table[lexeme]['return_address']
             l = len(self.program_block)
@@ -102,7 +102,6 @@ class Codegen:
                 if key == lexeme:
                     self.semantic_stack.append(value['addr'])
                     return
-            print(self.function)
             for key, value in self.symbol_table[self.function]["vars"].items():
                 if key == lexeme:
                     self.semantic_stack.append(value['addr'])
@@ -113,8 +112,6 @@ class Codegen:
                     return
             if lexeme == 'output':
                 return
-            pprint(self.symbol_table)
-            print(f'voiddddddddddd type {lexeme}')
             if void_type:
                 err_msg = f"{line_no}: Semantic Error! Illegal type of void for {lexeme}."
                 self.semantic_errors.append(err_msg)
@@ -343,27 +340,22 @@ class Codegen:
 
     def function_call(self, arg):
         if self.function == 'output':
-            print('is output')
             self.output()
             return
         address = self.symbol_table[self.function]['addr']
         self.program_block.append(f'(jp, {address}, , )')
-        print(self.function_arg_number, len(self.symbol_table[self.function]['args']))
         if self.function_arg_number != len(self.symbol_table[self.function]['args']):
             err_msg = f"{arg}: semantic error! Mismatch in numbers of arguments of {self.function}"
             self.semantic_errors.append(err_msg)
             return
         self.function_arg_number = 0
-        print('callers', self.callers)
         self.function = self.callers.pop()
 
 
     def arg(self, arg=None):
-        print('hiiiiiiiiiiiiiiiiiiiiiiiiiiii')
-        print(self.function, self.fun_declarating)
-        if not self.function or self.fun_declarating:
+        if not self.function or ((not self.callers or self.callers[-1] != 'main') and self.fun_declarating):
             return
-        st = self.symbol_table[self.callers[-1]]
+        st = self.symbol_table[self.function]
         if len(st["args"]) == self.function_arg_number:
             err_msg = f"{arg}: semantic error! Mismatch in numbers of arguments of {self.function}"
             self.semantic_errors.append(err_msg)
@@ -387,7 +379,6 @@ class Codegen:
         lexeme = arg
         if not self.function:
             return
-        print("*************************************************************************down with compiler")
         self.symbol_table[lexeme].update({'type': 'func'})
 
     def fun_declaration_end(self, arg=None):

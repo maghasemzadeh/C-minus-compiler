@@ -1,3 +1,0 @@
-PRINT    25
-PRINT    1234
-PRINT    25

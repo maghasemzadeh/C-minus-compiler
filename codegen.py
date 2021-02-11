@@ -76,6 +76,7 @@ class Codegen:
         return t
 
     def generate(self, action_symbol, arg=None):
+        print('==== action sym',action_symbol)
         if not self.main_access_link:
             t = self.get_temp()
             self.main_access_link = t
@@ -83,6 +84,7 @@ class Codegen:
         self.action_symbols[action_symbol[1:]](arg)
 
     def pid(self, args):
+        print(args)
         tmp = 0
         if len(args) == 3:
             void_type = args[0]
@@ -215,6 +217,7 @@ class Codegen:
         pb_ind = self.semantic_stack.pop()
         if_exp = self.semantic_stack.pop()
         i = len(self.program_block)
+        print(self.program_block)
 
         self.program_block[pb_ind] = f'(JPF, {if_exp}, {i + 1},)'
         self.semantic_stack.append(i)
@@ -257,17 +260,48 @@ class Codegen:
             else:
                 self.pnum(number)
         else:
-            for key, val in self.memory.items():
-                if val == n:
-                    number = val
-                    t = self.get_temp()
-                    self.semantic_stack.append(t)
-                    if sign == '-':
-                        self.add_to_program_block(f'(MULT, {number}, #-1, {t})')
-                    else:
-                        self.add_to_program_block(f'(MULT, {number}, #1, {t})')
+            if self.fun_declarating:
+                for key, value in self.symbol_table[self.function]["args"]:
+                    if value['addr'] == n:
+                        number = value['addr']
+                        t = self.get_temp()
+                        self.semantic_stack.append(t)
+                        if sign == '-':
+                            self.add_to_program_block(f'(MULT, {number}, #-1, {t})')
+                        else:
+                            self.add_to_program_block(f'(MULT, {number}, #1, {t})')
+                        return
+                for key, value in self.symbol_table[self.function]["vars"].items():
+                    if value['addr'] == n:
+                        number = value['addr']
+                        t = self.get_temp()
+                        self.semantic_stack.append(t)
+                        if sign == '-':
+                            self.add_to_program_block(f'(MULT, {number}, #-1, {t})')
+                        else:
+                            self.add_to_program_block(f'(MULT, {number}, #1, {t})')
+                        return
+                for key, val in self.memory.items():
+                    if value['addr'] == n:
+                        number = value['addr']
+                        t = self.get_temp()
+                        self.semantic_stack.append(t)
+                        if sign == '-':
+                            self.add_to_program_block(f'(MULT, {number}, #-1, {t})')
+                        else:
+                            self.add_to_program_block(f'(MULT, {number}, #1, {t})')
+                        return
+            else:
+                for key, val in self.memory.items():
+                    if val == n:
+                        number = val
+                        t = self.get_temp()
+                        self.semantic_stack.append(t)
+                        if sign == '-':
+                            self.add_to_program_block(f'(MULT, {number}, #-1, {t})')
+                        else:
+                            self.add_to_program_block(f'(MULT, {number}, #1, {t})')
 
-        # todo check here
 
     def save_program_block(self):
         with open('output.txt', 'w') as output:
@@ -289,16 +323,22 @@ class Codegen:
         size = args[2]
         line_no = args[3]
         index = self.semantic_stack.pop()
-        for i in range(1, int(self.temp[index])):
-            self.add_to_program_block(f'(ASSIGN, #0, {self.cur_mem_addr}, )')
-            self.cur_mem_addr += 4
+        if self.calling_function:
+            self.symbol_table[self.function]['vars'][lexeme].update({'type': 'arr'})
+            for i in range(1, int(self.temp[index])):
+                self.add_to_program_block(f'(ASSIGN, #0, {self.func_memory_cur}, )')
+                self.func_memory_cur += 4
+        else:
+            self.symbol_table[lexeme].update({'type': 'arr'})
+            for i in range(1, int(self.temp[index])):
+                self.add_to_program_block(f'(ASSIGN, #0, {self.cur_mem_addr}, )')
+                self.cur_mem_addr += 4
         if void_type:
             err_msg = f"{line_no}: Semantic Error! Illegal type of void for {lexeme}."
             self.semantic_errors.append(err_msg)
             del self.symbol_table[lexeme]
             return
 
-        self.symbol_table[lexeme].update({'type': 'arr'})
 
     def tmp_save(self, arg=None):
         self.break_stack.append('switch')
@@ -345,6 +385,7 @@ class Codegen:
         self.break_stack.pop()
 
     def function_call(self, arg):
+        print('~~~~~~',self.calling_function)
         if self.calling_function == 'output':
             self.output()
             return

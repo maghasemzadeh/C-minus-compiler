@@ -109,6 +109,9 @@ class Parser:
                 elif stack_top == '#fun_declarated':
                     self.codegen.generate(stack_top)
                     args = []
+                elif stack_top in ['#param_arr' , '#param_var']:
+                    self.codegen.generate(stack_top)
+                    args = []
                 elif stack_top[1:] in self.codegen.arg_actions:
                     self.codegen.generate(stack_top, lexeme)
                 else:

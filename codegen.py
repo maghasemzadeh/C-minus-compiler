@@ -58,7 +58,7 @@ class Codegen:
         self.callers = []
         self.function_arg_number = 0
         self.temp_id = None
-        self.calling_function = None
+        self.calling_function = []
 
     def find_addr(self):
         t = self.cur_mem_addr
@@ -95,11 +95,11 @@ class Codegen:
         self.temp_id = lexeme
         if lexeme in self.symbol_table and self.symbol_table[lexeme]['type'] == 'func':
             self.callers.append(self.function)
-            self.calling_function = lexeme
+            self.calling_function.append(lexeme)
             return
         if self.fun_declarating:
             if lexeme == 'output':
-                self.calling_function = lexeme
+                self.calling_function.append(lexeme)
                 return
             for key, value in self.symbol_table[self.function]["args"]:
                 if key == lexeme:
@@ -133,7 +133,7 @@ class Codegen:
                     self.semantic_stack.append(val)
                     return
             if lexeme == 'output':
-                self.calling_function = lexeme
+                self.calling_function.append(lexeme)
                 return
             addr = self.find_addr()
             self.memory.update({lexeme: addr})
@@ -323,7 +323,7 @@ class Codegen:
         size = args[2]
         line_no = args[3]
         index = self.semantic_stack.pop()
-        if self.calling_function:
+        if len(self.calling_function) > 0:
             self.symbol_table[self.function]['vars'][lexeme].update({'type': 'arr'})
             for i in range(1, int(self.temp[index])):
                 self.add_to_program_block(f'(ASSIGN, #0, {self.func_memory_cur}, )')
@@ -386,33 +386,33 @@ class Codegen:
 
     def function_call(self, arg):
         print('~~~~~~',self.calling_function)
-        if self.calling_function == 'output':
+        if self.calling_function[-1] == 'output':
             self.output()
             return
-        address = self.symbol_table[self.calling_function]['addr']
-        return_address = self.symbol_table[self.calling_function]['return_address']
+        address = self.symbol_table[self.calling_function[-1]]['addr']
+        return_address = self.symbol_table[self.calling_function[-1]]['return_address']
         self.add_to_program_block(f'(ASSIGN, #{len(self.program_block) + 2}, {return_address}, )')
         self.add_to_program_block(f'(JP, {address}, , )')
-        if self.function_arg_number != len(self.symbol_table[self.calling_function]['args']):
-            err_msg = f"{arg}: semantic error! Mismatch in numbers of arguments of {self.calling_function}"
+        if self.function_arg_number != len(self.symbol_table[self.calling_function[-1]]['args']):
+            err_msg = f"{arg}: semantic error! Mismatch in numbers of arguments of {self.calling_function[-1]}"
             self.semantic_errors.append(err_msg)
             return
-        if self.symbol_table[self.calling_function]['data_type'] == 'void':
+        if self.symbol_table[self.calling_function[-1]]['data_type'] == 'void':
             self.semantic_stack.append(None)
         else:
-            return_value = self.symbol_table[self.calling_function]['return_value']
+            return_value = self.symbol_table[self.calling_function[-1]]['return_value']
             self.semantic_stack.append(return_value)
         self.function_arg_number = 0
-        self.calling_function = None
+        self.calling_function.pop()
         self.function = self.callers.pop()
 
 
     def arg(self, arg=None):
         if not self.function or ((not self.callers or self.callers[-1] != 'main') and self.fun_declarating):
             return
-        st = self.symbol_table[self.calling_function]
+        st = self.symbol_table[self.calling_function[-1]]
         if len(st["args"]) == self.function_arg_number:
-            err_msg = f"{arg}: semantic error! Mismatch in numbers of arguments of {self.calling_function}"
+            err_msg = f"{arg}: semantic error! Mismatch in numbers of arguments of {self.calling_function[-1]}"
             self.semantic_errors.append(err_msg)
             return
         value_address = self.semantic_stack.pop()
